@@ -57,3 +57,8 @@ func rrExtHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	respond(w, res, http.StatusOK)
 }
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ONLINE"))
+}
