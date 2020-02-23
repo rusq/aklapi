@@ -1,5 +1,7 @@
 # Auckland Rubbish and Recycling days webservice
 
+### Usage
+
 This simple app exposes 2 endpoints so far, both accepting `addr` parameter.
 
 * /rr/ - rubbish and recycling, returns the JSON of the following format:
@@ -36,6 +38,19 @@ This simple app exposes 2 endpoints so far, both accepting `addr` parameter.
 
 Example:
 
-    $ curl --location --request GET 'https://<server>/api/v1/rr/?addr=500%20Queen%20Street'
-    
-    {"rubbish":"2020-02-24","recycle":"2020-02-24","address":"500 Queen Street, Auckland Central"}
+```sh
+$ curl --location --request GET 'https://<server>/api/v1/rr/?addr=500%20Queen%20Street'
+{"rubbish":"2020-02-24","recycle":"2020-02-24","address":"500 Queen Street, Auckland Central"}
+```
+
+### Integrating with Home Assistant
+
+Add the following to your `configuration.yaml`:
+
+```yaml
+sensor:
+  - platform: rest
+    resource: https://your_server/api/v1/rr?addr=500%20Mystreet
+    name: Recycle
+    value_template: '{{ value_json.recycle }}'
+```
