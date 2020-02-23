@@ -37,6 +37,10 @@ func AddressLookup(addr string) (AddrResponse, error) {
 
 // MatchingPropertyAddresses wrapper around the AKL Council API.
 func MatchingPropertyAddresses(addrReq *AddrRequest) (AddrResponse, error) {
+	cachedAr, ok := addrCache.Lookup(addrReq.SearchText)
+	if ok {
+		return cachedAr, nil
+	}
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(addrReq); err != nil {
