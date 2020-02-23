@@ -11,6 +11,7 @@ import (
 )
 
 var collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
+var rubbishCache rubbishResultCache
 
 var defaultLoc, _ = time.LoadLocation("Pacific/Auckland") // Auckland is in NZ.
 
@@ -50,6 +51,9 @@ func (res *CollectionDayDetailResult) NextRecycle() time.Time {
 // CollectionDayDetail returns a collection day details for the specified
 // address as reported by the Auckland Council Website.
 func CollectionDayDetail(addr string) (*CollectionDayDetailResult, error) {
+	if cachedRes, ok := rubbishCache.Lookup(addr); ok {
+		return cachedRes, nil
+	}
 	address, err := oneAddress(addr)
 	if err != nil {
 		return nil, err
