@@ -18,7 +18,7 @@ This simple app exposes 2 endpoints so far, both accepting `addr` parameter.
           "Collections": [
               {
                   "Day": "Monday 24 January",
-                  "Date": "2020-02-24T00:00:00+13:00",
+                  "Date": "2020-01-24T00:00:00+13:00",
                   "Rubbish": true,
                   "Recycle": true
               },
