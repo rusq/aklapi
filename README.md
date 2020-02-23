@@ -4,7 +4,7 @@
 
 This simple app exposes 2 endpoints so far, both accepting `addr` parameter.
 
-* /rr/ - rubbish and recycling, returns the JSON of the following format:
+* `/api/v1/rr/` - rubbish and recycling, returns the JSON of the following format:
 
       {
           "rubbish": "2020-02-25",
@@ -12,7 +12,7 @@ This simple app exposes 2 endpoints so far, both accepting `addr` parameter.
           "address": "Britomart, CBD"
       }
 
-* /rrext/ - extended rubbish and recycling.  Returns the JSON in the following format:
+* `/api/v1/rrext/` - extended rubbish and recycling.  Returns the JSON in the following format:
 
       {
           "Collections": [
@@ -50,7 +50,7 @@ Add the following to your `configuration.yaml`:
 ```yaml
 sensor:
   - platform: rest
-    resource: https://your_server/api/v1/rr?addr=500%20Mystreet
+    resource: https://your_server/api/v1/rr/?addr=500%20Mystreet
     name: Recycle
     value_template: '{{ value_json.recycle }}'
 ```
