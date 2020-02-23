@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
+	"time"
 )
 
 var addrURI = `https://www.aucklandcouncil.govt.nz/_vti_bin/ACWeb/ACservices.svc/GetMatchingPropertyAddresses`
@@ -40,6 +42,7 @@ func AddressLookup(addr string) (AddrResponse, error) {
 func MatchingPropertyAddresses(addrReq *AddrRequest) (AddrResponse, error) {
 	cachedAr, ok := addrCache.Lookup(addrReq.SearchText)
 	if ok {
+		log.Printf("cached address result: %q", cachedAr)
 		return cachedAr, nil
 	}
 	var buf bytes.Buffer
@@ -48,11 +51,13 @@ func MatchingPropertyAddresses(addrReq *AddrRequest) (AddrResponse, error) {
 		return nil, err
 	}
 
+	start := time.Now()
 	resp, err := http.Post(addrURI, "application/json; charset=UTF-8", &buf)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	log.Printf("address call complete in %s", time.Since(start))
 
 	dec := json.NewDecoder(resp.Body)
 	ar := AddrResponse{}
