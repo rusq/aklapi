@@ -8,6 +8,7 @@ import (
 )
 
 var addrURI = `https://www.aucklandcouncil.govt.nz/_vti_bin/ACWeb/ACservices.svc/GetMatchingPropertyAddresses`
+var addrCache addrResponseCache
 
 // AddrRequest is the address request.
 type AddrRequest struct {
@@ -37,6 +38,10 @@ func AddressLookup(addr string) (AddrResponse, error) {
 
 // MatchingPropertyAddresses wrapper around the AKL Council API.
 func MatchingPropertyAddresses(addrReq *AddrRequest) (AddrResponse, error) {
+	cachedAr, ok := addrCache.Lookup(addrReq.SearchText)
+	if ok {
+		return cachedAr, nil
+	}
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(addrReq); err != nil {
