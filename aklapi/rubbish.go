@@ -1,10 +1,12 @@
 package aklapi
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -14,7 +16,10 @@ var collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/ru
 
 var rubbishCache rubbishResultCache = make(rubbishResultCache, 0)
 
-var defaultLoc, _ = time.LoadLocation("Pacific/Auckland") // Auckland is in NZ.
+var (
+	defaultLoc, _ = time.LoadLocation("Pacific/Auckland") // Auckland is in NZ.
+	dow           = regexp.MustCompile("Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday")
+)
 
 // RubbishCollection contains the date and type of collection.
 type RubbishCollection struct {
@@ -112,9 +117,15 @@ func (p *refuseParser) Parse(r io.Reader) ([]RubbishCollection, error) {
 	_ = doc.Find(datesSection).
 		Children().
 		Slice(1, 3).
-		Each(p.parseLinks)
+		Each(p.parseLinks) // p.parseLinks populates p.detail
 	for i := range p.detail {
 		if err := (&p.detail[i]).parseDate(); err != nil {
+			if err == errSkip {
+				// if we get errSkip - we must have gone beyond the proper links
+				// therefore terminate loop and remove the empty element.
+				p.detail = p.detail[:i]
+				break
+			}
 			log.Println(err)
 			continue
 		}
@@ -122,9 +133,42 @@ func (p *refuseParser) Parse(r io.Reader) ([]RubbishCollection, error) {
 	return p.detail, p.Err
 }
 
+// parseLinks parses the links within selection
+func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
+	sel.Children().Each(func(n int, sel *goquery.Selection) {
+		switch n {
+		default:
+			p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
+		case 0:
+			if dow.FindString(sel.Text()) == "" {
+				log.Println("unable to detect day of week")
+				return
+			}
+			p.detail[el].Day = sel.Text()
+		case 1:
+			if sel.Text() != "Rubbish" {
+				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
+				return
+			}
+			p.detail[el].Rubbish = true
+		case 2:
+			if sel.Text() != "Recycle" {
+				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
+				return
+			}
+			p.detail[el].Recycle = true
+		}
+	})
+}
+
+var errSkip = errors.New("skip this date")
+
 func (r *RubbishCollection) parseDate() error {
 	datefmt := "Monday 2 January"
 
+	if r.Day == "" {
+		return errSkip
+	}
 	t, err := time.ParseInLocation(datefmt, r.Day, defaultLoc)
 	if err != nil {
 		return err
@@ -141,25 +185,4 @@ func adjustYear(t time.Time) time.Time {
 		t = t.AddDate(1, 0, 0)
 	}
 	return t
-}
-
-func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
-	sel.Children().Each(func(n int, sel *goquery.Selection) {
-		switch n {
-		default:
-			p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
-		case 0:
-			p.detail[el].Day = sel.Text()
-		case 1:
-			if sel.Text() != "Rubbish" {
-				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
-			}
-			p.detail[el].Rubbish = true
-		case 2:
-			if sel.Text() != "Recycle" {
-				p.Err = fmt.Errorf("unknown text in rubbish block: %s", sel.Text())
-			}
-			p.detail[el].Recycle = true
-		}
-	})
 }

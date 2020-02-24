@@ -39,6 +39,18 @@ func Test_parse(t *testing.T) {
 				Address: nil,
 			},
 			false},
+		{"500 queen ok",
+			args{strings.NewReader(testHTMLcommercial)},
+			&CollectionDayDetailResult{
+				Collections: []RubbishCollection{
+					{Day: "Monday 24 February",
+						Date:    adjustYear(time.Date(0, 02, 24, 0, 0, 0, 0, defaultLoc)),
+						Rubbish: true,
+						Recycle: true},
+				},
+				Address: nil,
+			},
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
