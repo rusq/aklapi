@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/rusq/aklrubbish/aklapi"
@@ -59,6 +60,14 @@ func rrExtHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ONLINE"))
+	var page = struct {
+		CyberdyneLogo string
+	}{
+		CyberdyneLogo: cyberdynePng,
+	}
+	if err := tmpl.ExecuteTemplate(w, "index.html", &page); err != nil {
+		log.Println(err)
+		http.NotFound(w, r)
+		return
+	}
 }
