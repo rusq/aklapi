@@ -1,1 +1,1 @@
-web: ./bin/aklrubbish
+web: ./bin/aklapi
