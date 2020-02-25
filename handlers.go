@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/rusq/aklrubbish/aklapi"
+	"github.com/rusq/aklapi/aklapi"
 )
 
 const dateFmt = "2006-01-02"
