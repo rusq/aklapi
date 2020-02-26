@@ -89,7 +89,7 @@ func fetchandparse(ACRateAccountKey string) (*CollectionDayDetailResult, error) 
 // recycling page.
 func parse(r io.Reader) (*CollectionDayDetailResult, error) {
 	p := &refuseParser{}
-	result, err := p.Parse(r)
+	result, err := p.parse(r)
 	if err != nil {
 		return nil, err
 	}
