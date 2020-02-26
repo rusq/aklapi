@@ -10,6 +10,7 @@ import (
 )
 
 var addrURI = `https://www.aucklandcouncil.govt.nz/_vti_bin/ACWeb/ACservices.svc/GetMatchingPropertyAddresses`
+var addrCache = make(addrResponseCache)
 
 // AddrRequest is the address request.
 type AddrRequest struct {

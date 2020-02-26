@@ -6,18 +6,17 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-var collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
+const datefmt = "Monday 2 January"
 
-var (
-	defaultLoc, _ = time.LoadLocation("Pacific/Auckland") // Auckland is in NZ.
-	dow           = regexp.MustCompile("Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday")
-)
+var collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
+var rubbishCache rubbishResultCache = make(rubbishResultCache, 0)
+
+var errSkip = errors.New("skip this date")
 
 // RubbishCollection contains the date and type of collection.
 type RubbishCollection struct {
@@ -27,6 +26,8 @@ type RubbishCollection struct {
 	Recycle bool
 }
 
+// CollectionDayDetailResult contains the information about Rubbish and
+// Recycling collection.
 type CollectionDayDetailResult struct {
 	Collections []RubbishCollection
 	Address     *Address
@@ -104,8 +105,8 @@ type refuseParser struct {
 	Err    error
 }
 
-// Parse parses the webpage.
-func (p *refuseParser) Parse(r io.Reader) ([]RubbishCollection, error) {
+// Parse parses the auckland council rubbish webpage.
+func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock"
 	p.detail = make([]RubbishCollection, 2)
 	doc, err := goquery.NewDocumentFromReader(r)
@@ -159,11 +160,7 @@ func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
 	})
 }
 
-var errSkip = errors.New("skip this date")
-
 func (r *RubbishCollection) parseDate() error {
-	datefmt := "Monday 2 January"
-
 	if r.Day == "" {
 		return errSkip
 	}
@@ -176,10 +173,11 @@ func (r *RubbishCollection) parseDate() error {
 }
 
 func adjustYear(t time.Time) time.Time {
-	thisYear := time.Now().Year()
+	today := now()
+	thisYear := today.Year()
 	t = t.AddDate(thisYear, 0, 0)
 	// year correction
-	if t.Before(time.Now()) && time.Now().Format("20060102") != t.Format("20060102") {
+	if t.Before(today) && today.Format("20060102") != t.Format("20060102") {
 		t = t.AddDate(1, 0, 0)
 	}
 	return t

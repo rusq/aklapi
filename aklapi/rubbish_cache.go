@@ -1,12 +1,6 @@
 package aklapi
 
-import "time"
-
 type rubbishResultCache map[string]*CollectionDayDetailResult
-
-var rubbishCache rubbishResultCache = make(rubbishResultCache, 0)
-
-var now = time.Now // time generator
 
 func (c rubbishResultCache) Lookup(searchText string) (result *CollectionDayDetailResult, ok bool) {
 	result, ok = c[searchText]
