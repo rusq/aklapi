@@ -11,6 +11,7 @@ import (
 const (
 	root              = "/"
 	apiRoot           = "/api/v1"
+	apiAddr           = apiRoot + "/addr/"
 	apiRubbishRecycle = apiRoot + "/rr/"
 	apiRRExt          = apiRoot + "/rrext/"
 )
@@ -20,6 +21,7 @@ var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
 
 func main() {
 	http.HandleFunc(root, rootHandler)
+	http.HandleFunc(apiAddr, addrHandler)
 	http.HandleFunc(apiRubbishRecycle, rrHandler)
 	http.HandleFunc(apiRRExt, rrExtHandler)
 

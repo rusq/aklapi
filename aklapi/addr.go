@@ -10,7 +10,6 @@ import (
 )
 
 var addrURI = `https://www.aucklandcouncil.govt.nz/_vti_bin/ACWeb/ACservices.svc/GetMatchingPropertyAddresses`
-var addrCache addrResponseCache
 
 // AddrRequest is the address request.
 type AddrRequest struct {
@@ -64,6 +63,7 @@ func MatchingPropertyAddresses(addrReq *AddrRequest) (AddrResponse, error) {
 	if err := dec.Decode(&ar); err != nil {
 		return nil, err
 	}
+	addrCache.Add(addrReq.SearchText, ar)
 	return ar, nil
 }
 

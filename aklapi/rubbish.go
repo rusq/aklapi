@@ -14,8 +14,6 @@ import (
 
 var collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
 
-var rubbishCache rubbishResultCache = make(rubbishResultCache, 0)
-
 var (
 	defaultLoc, _ = time.LoadLocation("Pacific/Auckland") // Auckland is in NZ.
 	dow           = regexp.MustCompile("Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday")

@@ -36,6 +36,21 @@ func rubbish(r *http.Request) (*aklapi.CollectionDayDetailResult, error) {
 	return aklapi.CollectionDayDetail(addr)
 }
 
+func addrHandler(w http.ResponseWriter, r *http.Request) {
+	addr := r.FormValue("addr")
+	if addr == "" {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	resp, err := aklapi.AddressLookup(addr)
+	if err != nil {
+		log.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	respond(w, resp, http.StatusOK)
+}
+
 func rrHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := rubbish(r)
 	if err != nil {

@@ -2,6 +2,8 @@ package aklapi
 
 type addrResponseCache map[string]AddrResponse
 
+var addrCache = make(addrResponseCache)
+
 func (c addrResponseCache) Lookup(searchText string) (resp AddrResponse, ok bool) {
 	resp, ok = c[searchText]
 	return
