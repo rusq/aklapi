@@ -134,7 +134,7 @@ func Test_oneAddress(t *testing.T) {
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				writeAddrJSON(w, AddrResponse{*testAddr, *testAddr})
 			})),
-			args{"red square"},
+			args{"red squarex"},
 			nil,
 			true,
 		},
@@ -142,7 +142,7 @@ func Test_oneAddress(t *testing.T) {
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("[]"))
 			})),
-			args{"red square"},
+			args{"red squarec"},
 			nil,
 			true,
 		},

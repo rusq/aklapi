@@ -179,7 +179,7 @@ func adjustYear(t time.Time) time.Time {
 	thisYear := time.Now().Year()
 	t = t.AddDate(thisYear, 0, 0)
 	// year correction
-	if t.Before(time.Now()) {
+	if t.Before(time.Now()) && time.Now().Format("20060102") != t.Format("20060102") {
 		t = t.AddDate(1, 0, 0)
 	}
 	return t
