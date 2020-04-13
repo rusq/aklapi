@@ -1,8 +1,20 @@
-# Auckland Rubbish and Recycling days webservice
+# Auckland Council API (unofficial)
 
-### Usage
+Full list of available endpoints, for detailed description see below.
 
-This simple app exposes 2 endpoints so far, both accepting `addr` parameter.
+| Name | Endpoint | Parameters | Comments |
+|:----|:----|:----|:-----|
+|Address|`/api/v1/addr`|`addr`: partial address|Address Query|
+|Rubbish and Recycling short|`/api/v1/rr`|`addr`: partial address|Rubbish and Recycling, short format|
+|Rubbish and Recycling|`/api/v1/rrext`|`addr`: partial address|Rubbish and Recycling|
+
+### Address search
+
+* `/api/v1/addr`, parameter: `addr` - 
+
+### Rubbish and Recycling
+
+Two endpoints so far, both accepting `addr` parameter.
 
 * `/api/v1/rr/` - rubbish and recycling, returns the JSON of the following format:
 
