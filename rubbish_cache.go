@@ -2,7 +2,12 @@ package aklapi
 
 type rubbishResultCache map[string]*CollectionDayDetailResult
 
+var rubbishCache rubbishResultCache = make(rubbishResultCache, 0)
+
 func (c rubbishResultCache) Lookup(searchText string) (result *CollectionDayDetailResult, ok bool) {
+	if NoCache {
+		return nil, false
+	}
 	result, ok = c[searchText]
 	if !ok {
 		return

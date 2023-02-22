@@ -8,17 +8,22 @@ import (
 )
 
 func Test_addrResponseCache_Lookup(t *testing.T) {
+	defer func() {
+		NoCache = false
+	}()
 	type args struct {
 		searchText string
 	}
 	tests := []struct {
 		name     string
+		NoCache  bool // if true, set NoCache to true before running test
 		c        addrResponseCache
 		args     args
 		wantResp AddrResponse
 		wantOk   bool
 	}{
 		{"not in cache",
+			false,
 			addrResponseCache{
 				"xxx": AddrResponse{*testAddr},
 			},
@@ -27,6 +32,7 @@ func Test_addrResponseCache_Lookup(t *testing.T) {
 			false,
 		},
 		{"cached",
+			false,
 			addrResponseCache{
 				testAddr.Address: AddrResponse{*testAddr},
 			},
@@ -34,9 +40,19 @@ func Test_addrResponseCache_Lookup(t *testing.T) {
 			AddrResponse{*testAddr},
 			true,
 		},
+		{"cached, no cache mode",
+			true,
+			addrResponseCache{
+				testAddr.Address: AddrResponse{*testAddr},
+			},
+			args{testAddr.Address},
+			nil,
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			NoCache = tt.NoCache
 			gotResp, gotOk := tt.c.Lookup(tt.args.searchText)
 			if !reflect.DeepEqual(gotResp, tt.wantResp) {
 				t.Errorf("addrResponseCache.Lookup() gotResp = %v, want %v", gotResp, tt.wantResp)

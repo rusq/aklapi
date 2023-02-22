@@ -7,6 +7,8 @@ Full list of available endpoints, for detailed description see below.
 | Address                     | `/api/v1/addr`  | `addr`: partial address | Address Query                       |
 | Rubbish and Recycling short | `/api/v1/rr`    | `addr`: partial address | Rubbish and Recycling, short format |
 | Rubbish and Recycling       | `/api/v1/rrext` | `addr`: partial address | Rubbish and Recycling               |
+| Healthcheck                 | `/healthcheck`  |                         | Returns OK if alive                 |
+
 
 ### Address search
 
