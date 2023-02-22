@@ -9,8 +9,10 @@ import (
 	"time"
 )
 
-var addrURI = `https://www.aucklandcouncil.govt.nz/_vti_bin/ACWeb/ACservices.svc/GetMatchingPropertyAddresses`
-var addrCache = make(addrResponseCache)
+var (
+	// defined as a variable so it can be overridden in tests.
+	addrURI = `https://www.aucklandcouncil.govt.nz/_vti_bin/ACWeb/ACservices.svc/GetMatchingPropertyAddresses`
+)
 
 // AddrRequest is the address request.
 type AddrRequest struct {

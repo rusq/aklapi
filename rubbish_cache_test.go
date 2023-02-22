@@ -40,50 +40,67 @@ var (
 )
 
 func Test_rubbishResultCache_Lookup(t *testing.T) {
+	defer func() {
+		NoCache = false
+	}()
 	type args struct {
 		searchText string
 	}
 	tests := []struct {
 		name       string
+		NoCache    bool // if true, set NoCache to true before running test
 		c          rubbishResultCache
 		args       args
 		wantResult *CollectionDayDetailResult
 		wantOk     bool
 	}{
-		{"not in cache (empty)", rubbishResultCache{}, args{"blah"}, nil, false},
+		{"not in cache (empty)", false, rubbishResultCache{}, args{"blah"}, nil, false},
 		{"not in cache",
+			false,
 			rubbishResultCache{
 				testAddr.Address: tomorrow,
 			},
 			args{"blah"},
 			nil, false},
 		{"in cache (future)",
+			false,
 			rubbishResultCache{
 				testAddr.Address: tomorrow,
 			},
 			args{testAddr.Address},
 			tomorrow, true},
 		{"in cache (today)",
+			false,
 			rubbishResultCache{
 				testAddr.Address: today,
 			},
 			args{testAddr.Address},
 			today, true},
 		{"in cache, expired",
+			false,
 			rubbishResultCache{
 				testAddr.Address: yesterday,
 			},
 			args{testAddr.Address},
 			nil, false},
 		{"in cache, second entry expired",
+			false,
 			rubbishResultCache{
 				testAddr.Address: secondYesterday,
+			},
+			args{testAddr.Address},
+			nil, false},
+		{"no cache",
+			true,
+			rubbishResultCache{
+				testAddr.Address: today,
 			},
 			args{testAddr.Address},
 			nil, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			NoCache = tt.NoCache
 			gotResult, gotOk := tt.c.Lookup(tt.args.searchText)
 			if !reflect.DeepEqual(gotResult, tt.wantResult) {
 				t.Errorf("rubbishResultCache.Lookup() gotResult = %v, want %v", gotResult, tt.wantResult)

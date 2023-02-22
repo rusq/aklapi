@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/rusq/aklapi/aklapi"
+	"github.com/rusq/aklapi"
 )
 
 const dateFmt = "2006-01-02"
@@ -85,4 +85,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+}
+
+func healthcheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
 }

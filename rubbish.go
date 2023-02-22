@@ -11,10 +11,17 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-const datefmt = "Monday 2 January"
+// NoCache is a flag to disable caching of the results.
+var NoCache = false
 
-var collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
-var rubbishCache rubbishResultCache = make(rubbishResultCache, 0)
+const (
+	dateLayout = "Monday 2 January"
+)
+
+var (
+	// defined as a variable so it can be overridden in tests.
+	collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
+)
 
 var errSkip = errors.New("skip this date")
 
@@ -164,7 +171,7 @@ func (r *RubbishCollection) parseDate() error {
 	if r.Day == "" {
 		return errSkip
 	}
-	t, err := time.ParseInLocation(datefmt, r.Day, defaultLoc)
+	t, err := time.ParseInLocation(dateLayout, r.Day, defaultLoc)
 	if err != nil {
 		return err
 	}
