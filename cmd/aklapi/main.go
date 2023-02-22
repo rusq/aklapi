@@ -35,7 +35,7 @@ func init() {
 var (
 	host    = flag.String("host", osenv.Value("HOST", defaultAddr), "host to listen on")
 	port    = flag.String("port", osenv.Value("PORT", defaultPort), "port to listen on")
-	nocache = flag.Bool("nocache", osenv.Value("NOCACHE", false), "disable caching")
+	nocache = flag.Bool("no-cache", osenv.Value("NO_CACHE", false), "disable caching")
 )
 
 var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
