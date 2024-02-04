@@ -9,7 +9,7 @@ RUN go build -ldflags="-s -w" ./cmd/aklapi
 FROM alpine:3.17
 LABEL maintainer="github:@rusq"
 
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates && apk --no-cache add tzdata
 
 
 WORKDIR /app
