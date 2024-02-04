@@ -12,10 +12,11 @@ import (
 const dateFmt = "2006-01-02"
 
 type rrResponse struct {
-	Rubbish string `json:"rubbish,omitempty"`
-	Recycle string `json:"recycle,omitempty"`
-	Address string `json:"address,omitempty"`
-	Error   string `json:"error,omitempty"`
+	Rubbish    string `json:"rubbish,omitempty"`
+	Recycle    string `json:"recycle,omitempty"`
+	FoodScraps string `json:"foodscraps,omitempty"`
+	Address    string `json:"address,omitempty"`
+	Error      string `json:"error,omitempty"`
 }
 
 func respond(w http.ResponseWriter, data interface{}, code int) {
@@ -58,9 +59,10 @@ func rrHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := rrResponse{
-		Recycle: res.NextRecycle().Format(dateFmt),
-		Rubbish: res.NextRubbish().Format(dateFmt),
-		Address: res.Address.Address,
+		Recycle:    res.NextRecycle().Format(dateFmt),
+		Rubbish:    res.NextRubbish().Format(dateFmt),
+		FoodScraps: res.NextFoodScraps().Format(dateFmt),
+		Address:    res.Address.Address,
 	}
 	respond(w, resp, http.StatusOK)
 }
