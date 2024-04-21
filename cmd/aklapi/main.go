@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	_ "time/tzdata"
 
 	"github.com/rusq/aklapi"
 	"github.com/rusq/osenv/v2"

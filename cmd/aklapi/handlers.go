@@ -5,11 +5,12 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/rusq/aklapi"
 )
 
-const dateFmt = "2006-01-02"
+const dttmLayout = "2006-01-02"
 
 type rrResponse struct {
 	Rubbish    string `json:"rubbish,omitempty"`
@@ -59,12 +60,20 @@ func rrHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := rrResponse{
-		Recycle:    res.NextRecycle().Format(dateFmt),
-		Rubbish:    res.NextRubbish().Format(dateFmt),
-		FoodScraps: res.NextFoodScraps().Format(dateFmt),
+		Recycle:    timefmt(res.NextRecycle()),
+		Rubbish:    timefmt(res.NextRubbish()),
+		FoodScraps: timefmt(res.NextFoodScraps()),
 		Address:    res.Address.Address,
 	}
 	respond(w, resp, http.StatusOK)
+}
+
+// timefmt formats the time skipping empty time.
+func timefmt(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format(dttmLayout)
 }
 
 func rrExtHandler(w http.ResponseWriter, r *http.Request) {
