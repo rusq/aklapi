@@ -6,7 +6,7 @@ COPY . .
 
 RUN go build -ldflags="-s -w" ./cmd/aklapi
 
-FROM alpine:3.17
+FROM alpine:3.19.1
 LABEL maintainer="github:@rusq"
 
 RUN apk add --no-cache ca-certificates

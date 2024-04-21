@@ -42,6 +42,7 @@ var (
 var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	flag.Parse()
 	if *port == "" {
 		log.Printf("no port specified, defaulting to %s", defaultPort)
