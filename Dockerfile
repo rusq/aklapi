@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS builder
+FROM golang:1.22-alpine AS builder
 LABEL maintainer="github:@rusq"
 
 WORKDIR /build
@@ -6,10 +6,10 @@ COPY . .
 
 RUN go build -ldflags="-s -w" ./cmd/aklapi
 
-FROM alpine:3.17
+FROM alpine:3.19.1
 LABEL maintainer="github:@rusq"
 
-RUN apk add --no-cache ca-certificates && apk --no-cache add tzdata
+RUN apk add --no-cache ca-certificates
 
 
 WORKDIR /app

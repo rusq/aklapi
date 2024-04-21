@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	_ "time/tzdata"
 
 	"github.com/rusq/aklapi"
 	"github.com/rusq/osenv/v2"
@@ -41,6 +42,7 @@ var (
 var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	flag.Parse()
 	if *port == "" {
 		log.Printf("no port specified, defaulting to %s", defaultPort)
