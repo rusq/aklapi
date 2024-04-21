@@ -125,15 +125,15 @@ type refuseParser struct {
 
 // Parse parses the auckland council rubbish webpage.
 func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
-	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock"
-	p.detail = make([]RubbishCollection, 2)
+	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock2"
+	p.detail = make([]RubbishCollection, 3)
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return nil, err
 	}
 	_ = doc.Find(datesSection).
 		Children().
-		Slice(1, 3).
+		Slice(1, 4).
 		Each(p.parseLinks) // p.parseLinks populates p.detail
 	for i := range p.detail {
 		if err := (&p.detail[i]).parseDate(); err != nil {
@@ -152,15 +152,9 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 
 // parseLinks parses the links within selection
 func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
-	sel.Children().Each(func(n int, sel *goquery.Selection) {
+	sel.Children().Children().Each(func(n int, sel *goquery.Selection) {
 		switch n {
 		case 0:
-			if dow.FindString(sel.Text()) == "" {
-				log.Println("unable to detect day of week")
-				return
-			}
-			p.detail[el].Day = sel.Text()
-		default:
 			if sel.Text() == "Rubbish" {
 				p.detail[el].Rubbish = true
 			} else if sel.Text() == "Food scraps" {
@@ -170,6 +164,12 @@ func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
 			} else {
 				p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
 			}
+		default:
+			if dow.FindString(sel.Text()) == "" {
+				log.Println("unable to detect day of week")
+				return
+			}
+			p.detail[el].Day = sel.Text()
 		}
 	})
 }
