@@ -59,12 +59,33 @@ $ curl --location --request GET 'https://<server>/api/v1/rr/?addr=500%20Queen%20
 
 ### Integrating with Home Assistant
 
-Add the following to your `configuration.yaml`:
+Assuming your aklapi API server running on localhost:5010, add the following
+to your `configuration.yaml`:
 
 ```yaml
 sensor:
   - platform: rest
-    resource: https://your_server/api/v1/rr/?addr=500%20Mystreet
+    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
     name: Recycle
-    value_template: '{{ value_json.recycle }}'
+    scan_interval: 300
+    value_template: "{{ value_json.recycle }}"
+    method: GET
+    unique_id: recycle_date
+
+  - platform: rest
+    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
+    name: Food Scraps
+    scan_interval: 300
+    value_template: "{{ value_json.foodscraps }}"
+    method: GET
+    unique_id: foodscraps_date
+
+  - platform: rest
+    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
+    name: Rubbish
+    scan_interval: 300
+    value_template: "{{ value_json.rubbish }}"
+    method: GET
+    unique_id: rubbish_date
+
 ```
