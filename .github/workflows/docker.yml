@@ -5,6 +5,11 @@ on:
         types:
             - published
 
+# reference:
+# 1. https://docs.docker.com/build/ci/github-actions/push-multi-registries/
+# 2. https://github.com/docker/metadata-action?tab=readme-ov-file#typeraw
+# 3. 
+
 jobs:
     push_to_dockerhub:
         name: Push image to dockerhub
@@ -19,6 +24,8 @@ jobs:
                 tags: |
                   type=raw,value=latest  
                   type=semver,pattern={{version}}
+                  type=semver,pattern={{major}}.{{minor}}
+                  type=semver,pattern={{major}}
             - name: Login to Docker Hub
               uses: docker/login-action@v3
               with:
