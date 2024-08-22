@@ -1,6 +1,7 @@
 package aklapi
 
 import (
+	_ "embed"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,6 +14,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//go:generate curl -L https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=12342478585 -o test_assets/500-queen-street.html
+//go:generate curl -L https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=12341511281 -o test_assets/1-luanda-drive.html
+
+// Test data, run go:generate to update, then update dates in tests
+// accordingly.
+var (
+	//go:embed "test_assets/1-luanda-drive.html"
+	taRsd1LuandaDrive string
+
+	//go:embed "test_assets/500-queen-street.html"
+	taCom500QueenStreet string
+)
+
 func Test_parse(t *testing.T) {
 	type args struct {
 		r io.Reader
@@ -23,37 +37,48 @@ func Test_parse(t *testing.T) {
 		want    *CollectionDayDetailResult
 		wantErr bool
 	}{
-		{"ok",
-			args{strings.NewReader(testHTML)},
+		{"1 Luanda Drive, Ranui",
+			args{strings.NewReader(taRsd1LuandaDrive)},
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
-					{Day: "Sunday 21 April",
-						Date:       adjustYear(time.Date(0, 04, 21, 0, 0, 0, 0, defaultLoc)),
+					{
+						Day:        "Tuesday 27 August",
+						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    true,
 						Recycle:    false,
-						FoodScraps: false},
-					{Day: "Sunday 21 April",
-						Date:       adjustYear(time.Date(0, 04, 21, 0, 0, 0, 0, defaultLoc)),
+						FoodScraps: false,
+					},
+					{
+						Day:        "Tuesday 27 August",
+						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Rubbish:    false,
+						Recycle:    false,
+						FoodScraps: true,
+					},
+					{
+						Day:        "Tuesday 3 September",
+						Date:       adjustYear(time.Date(0, 9, 3, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    true,
-						FoodScraps: false},
+						FoodScraps: false,
+					},
 				},
 				Address: nil,
 			},
 			false},
-		{"500 queen ok",
-			args{strings.NewReader(testHTMLcommercial)},
+		{"500 Queen Street, CBD",
+			args{strings.NewReader(taCom500QueenStreet)},
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:     "Sunday 21 April",
-						Date:    adjustYear(time.Date(0, 04, 21, 0, 0, 0, 0, defaultLoc)),
+						Day:     "Thursday 22 August",
+						Date:    adjustYear(time.Date(0, 8, 22, 0, 0, 0, 0, defaultLoc)),
 						Rubbish: true,
 						Recycle: false,
 					},
 					{
-						Day:     "Sunday 21 April",
-						Date:    adjustYear(time.Date(0, 04, 21, 0, 0, 0, 0, defaultLoc)),
+						Day:     "Thursday 22 August",
+						Date:    adjustYear(time.Date(0, 8, 22, 0, 0, 0, 0, defaultLoc)),
 						Rubbish: false,
 						Recycle: true,
 					},
@@ -260,7 +285,7 @@ func testMux() http.Handler {
 		w.Write(data)
 	})
 	mux.HandleFunc("/rubbish/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(testHTML))
+		w.Write([]byte(taRsd1LuandaDrive))
 	})
 
 	return mux
