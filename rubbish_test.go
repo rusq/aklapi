@@ -99,6 +99,71 @@ func Test_parse(t *testing.T) {
 	}
 }
 
+func TestCollectionDayDetail(t *testing.T) {
+	type args struct {
+		addr string
+	}
+	tests := []struct {
+		name    string
+		testSrv *httptest.Server
+		args    args
+		want    *CollectionDayDetailResult
+		wantErr bool
+	}{
+		{"main branch",
+			httptest.NewServer(testMux()),
+			args{addr: "xxx"},
+			&CollectionDayDetailResult{
+				Collections: []RubbishCollection{
+					{
+						Day:        "Tuesday 27 August",
+						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Rubbish:    true,
+						Recycle:    false,
+						FoodScraps: false,
+					},
+					{
+						Day:        "Tuesday 27 August",
+						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Rubbish:    false,
+						Recycle:    false,
+						FoodScraps: true,
+					},
+					{
+						Day:        "Tuesday 3 September",
+						Date:       adjustYear(time.Date(0, 9, 3, 0, 0, 0, 0, defaultLoc)),
+						Rubbish:    false,
+						Recycle:    true,
+						FoodScraps: false,
+					},
+				},
+				Address: &Address{
+					ACRateAccountKey: "42",
+					Address:          "Red Square",
+					Suggestion:       "Red Square",
+				},
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer tt.testSrv.Close()
+			oldAddrURI := addrURI
+			oldcollectionDayURI := collectionDayURI
+			defer func() { addrURI = oldAddrURI; collectionDayURI = oldcollectionDayURI }()
+			addrURI = tt.testSrv.URL + "/addr/"
+			collectionDayURI = tt.testSrv.URL + "/rubbish/?an=%s"
+			got, err := CollectionDayDetail(tt.args.addr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CollectionDayDetail() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestCollectionDayDetailResult_NextRubbish(t *testing.T) {
 	type fields struct {
 		Collections []RubbishCollection
@@ -213,64 +278,6 @@ func TestRubbishCollection_parseDate(t *testing.T) {
 			if err := r.parseDate(); (err != nil) != tt.wantErr {
 				t.Errorf("RubbishCollection.parseDate() error = %v, wantErr %v", err, tt.wantErr)
 			}
-		})
-	}
-}
-
-func TestCollectionDayDetail(t *testing.T) {
-	type args struct {
-		addr string
-	}
-	tests := []struct {
-		name    string
-		testSrv *httptest.Server
-		args    args
-		want    *CollectionDayDetailResult
-		wantErr bool
-	}{
-		{"main branch",
-			httptest.NewServer(testMux()),
-			args{addr: "xxx"},
-			&CollectionDayDetailResult{
-				Collections: []RubbishCollection{
-					{
-						Day:        "Sunday 21 April",
-						Date:       adjustYear(time.Date(0, 4, 21, 0, 0, 0, 0, defaultLoc)),
-						Rubbish:    true,
-						Recycle:    false,
-						FoodScraps: false,
-					},
-					{
-						Day:        "Sunday 21 April",
-						Date:       adjustYear(time.Date(0, 4, 21, 0, 0, 0, 0, defaultLoc)),
-						Rubbish:    false,
-						Recycle:    true,
-						FoodScraps: false,
-					},
-				},
-				Address: &Address{
-					ACRateAccountKey: "42",
-					Address:          "Red Square",
-					Suggestion:       "Red Square",
-				},
-			},
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			defer tt.testSrv.Close()
-			oldAddrURI := addrURI
-			oldcollectionDayURI := collectionDayURI
-			defer func() { addrURI = oldAddrURI; collectionDayURI = oldcollectionDayURI }()
-			addrURI = tt.testSrv.URL + "/addr/"
-			collectionDayURI = tt.testSrv.URL + "/rubbish/?an=%s"
-			got, err := CollectionDayDetail(tt.args.addr)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CollectionDayDetail() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			assert.Equal(t, tt.want, got)
 		})
 	}
 }
