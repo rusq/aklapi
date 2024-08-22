@@ -34,6 +34,23 @@ type RubbishCollection struct {
 	FoodScraps bool
 }
 
+func (r *RubbishCollection) String() string {
+	return fmt.Sprintf("%s: %s", r.Day, r.Type())
+}
+
+func (r *RubbishCollection) Type() string {
+	switch {
+	case r.Rubbish:
+		return "Rubbish"
+	case r.Recycle:
+		return "Recycle"
+	case r.FoodScraps:
+		return "Food Scraps"
+	default:
+		return "Unknown"
+	}
+}
+
 // CollectionDayDetailResult contains the information about Rubbish and
 // Recycling collection.
 type CollectionDayDetailResult struct {
@@ -155,11 +172,15 @@ func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
 	sel.Children().Children().Each(func(n int, sel *goquery.Selection) {
 		switch n {
 		case 0:
-			if sel.Text() == "Rubbish" {
+			attr, found := sel.Attr("class")
+			if !found {
+				return
+			}
+			if attr == "icon-rubbish" {
 				p.detail[el].Rubbish = true
-			} else if sel.Text() == "Food scraps" {
+			} else if attr == "icon-food-waste" {
 				p.detail[el].FoodScraps = true
-			} else if sel.Text() == "Recycle" {
+			} else if attr == "icon-recycle" {
 				p.detail[el].Recycle = true
 			} else {
 				p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
