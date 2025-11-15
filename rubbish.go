@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -15,12 +16,12 @@ import (
 var NoCache = false
 
 const (
-	dateLayout = "Monday 2 January"
+	dateLayout = "Monday, 2 January"
 )
 
 var (
 	// defined as a variable so it can be overridden in tests.
-	collectionDayURI = `https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=%s`
+	collectionDayURI = `https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/%s.html`
 )
 
 var errSkip = errors.New("skip this date")
@@ -142,16 +143,22 @@ type refuseParser struct {
 
 // Parse parses the auckland council rubbish webpage.
 func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
-	const datesSection = "#ctl00_SPWebPartManager1_g_dfe289d2_6a8a_414d_a384_fc25a0db9a6d_ctl00_pnlHouseholdBlock2"
-	p.detail = make([]RubbishCollection, 3)
+	const scheduledCardSelector = ".acpl-schedule-card"
+	p.detail = make([]RubbishCollection, 0, 3)
 	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return nil, err
 	}
-	_ = doc.Find(datesSection).
-		Children().
-		Slice(1, 4).
-		Each(p.parseLinks) // p.parseLinks populates p.detail
+
+	doc.Find(scheduledCardSelector).Each(func(i int, card *goquery.Selection) {
+		// Only parse Household collection card for now, not Commercial
+		cardTitle := strings.TrimSpace(card.Find("h4.card-title").Text())
+		if !strings.Contains(cardTitle, "Household collection") {
+			return
+		}
+		p.parseScheduleCard(card)
+	})
+
 	for i := range p.detail {
 		if err := (&p.detail[i]).parseDate(); err != nil {
 			if err == errSkip {
@@ -167,31 +174,28 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 	return p.detail, p.Err
 }
 
-// parseLinks parses the links within selection and populates p.detail.
-func (p *refuseParser) parseLinks(el int, sel *goquery.Selection) {
-	sel.Children().Children().Each(func(n int, sel *goquery.Selection) {
-		switch n {
-		case 0:
-			attr, found := sel.Attr("class")
-			if !found {
-				return
-			}
-			if attr == "icon-rubbish" {
-				p.detail[el].Rubbish = true
-			} else if attr == "icon-food-waste" {
-				p.detail[el].FoodScraps = true
-			} else if attr == "icon-recycle" {
-				p.detail[el].Recycle = true
-			} else {
-				p.Err = fmt.Errorf("parse error: sel.Text = %q, el = %d, n = %d", sel.Text(), el, n)
-			}
-		default:
-			if dow.FindString(sel.Text()) == "" {
-				log.Println("unable to detect day of week")
-				return
-			}
-			p.detail[el].Day = sel.Text()
+// parseScheduleCard parses a schedule card and extracts collection information.
+func (p *refuseParser) parseScheduleCard(card *goquery.Selection) {
+	// Each collection line is a <p class="mb-0 lead"> containing a span.acpl-icon-with-attribute.left
+	card.Find("p.mb-0.lead span.acpl-icon-with-attribute.left").Each(func(i int, span *goquery.Selection) {
+		icon := span.Find("i.acpl-icon")
+		date := strings.TrimSpace(span.Find("b").First().Text())
+		if date == "" { // skip empty (e.g. food scraps absent)
+			return
 		}
+		var rc RubbishCollection
+		rc.Day = date
+		if icon.HasClass("rubbish") {
+			rc.Rubbish = true
+		} else if icon.HasClass("recycle") {
+			rc.Recycle = true
+		} else if icon.HasClass("food-waste") {
+			rc.FoodScraps = true
+		} else {
+			// Unknown icon type; ignore
+			return
+		}
+		p.detail = append(p.detail, rc)
 	})
 }
 

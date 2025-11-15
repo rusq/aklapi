@@ -18,7 +18,7 @@ Full list of available endpoints, for detailed description see below.
 
 Two endpoints so far, both accepting `addr` parameter.
 
-* `/api/v1/rr/` - rubbish and recycling, returns the JSON of the following format:
+* `/api/v1/rr` - rubbish and recycling, returns the JSON of the following format:
 
       {
           "rubbish": "2020-02-25",
@@ -26,7 +26,7 @@ Two endpoints so far, both accepting `addr` parameter.
           "address": "Britomart, CBD"
       }
 
-* `/api/v1/rrext/` - extended rubbish and recycling.  Returns the JSON in the following format:
+* `/api/v1/rrext` - extended rubbish and recycling.  Returns the JSON in the following format:
 
       {
           "Collections": [
@@ -53,7 +53,7 @@ Two endpoints so far, both accepting `addr` parameter.
 Example:
 
 ```sh
-$ curl --location --request GET 'https://<server>/api/v1/rr/?addr=500%20Queen%20Street'
+$ curl --location --request GET 'https://<server>/api/v1/rr?addr=500%20Queen%20Street'
 {"rubbish":"2020-02-24","recycle":"2020-02-24","address":"500 Queen Street, Auckland Central"}
 ```
 
@@ -63,29 +63,21 @@ Assuming your aklapi API server running on localhost:5010, add the following
 to your `configuration.yaml`:
 
 ```yaml
-sensor:
-  - platform: rest
-    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
-    name: Recycle
-    scan_interval: 300
-    value_template: "{{ value_json.recycle }}"
+rest:
+  - resource: http://localhost:5010/api/v1/rr?addr=xx
     method: GET
-    unique_id: recycle_date
-
-  - platform: rest
-    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
-    name: Food Scraps
     scan_interval: 300
-    value_template: "{{ value_json.foodscraps }}"
-    method: GET
-    unique_id: foodscraps_date
-
-  - platform: rest
-    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
-    name: Rubbish
-    scan_interval: 300
-    value_template: "{{ value_json.rubbish }}"
-    method: GET
-    unique_id: rubbish_date
-
+    sensor:
+      - name: Recycle
+        value_template: "{{ value_json.recycle }}"
+        device_class: date
+        unique_id: recycle_date
+      - name: Food Scraps
+        value_template: "{{ value_json.foodscraps }}"
+        device_class: date
+        unique_id: foodscraps_date
+      - name: Rubbish
+        value_template: "{{ value_json.rubbish }}"
+        device_class: date
+        unique_id: rubbish_date
 ```

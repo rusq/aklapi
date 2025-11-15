@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:generate curl -L https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=12342478585 -o test_assets/500-queen-street.html
-//go:generate curl -L https://www.aucklandcouncil.govt.nz/rubbish-recycling/rubbish-recycling-collections/Pages/collection-day-detail.aspx?an=12341511281 -o test_assets/1-luanda-drive.html
+//go:generate curl -L https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/12342478585.html -o test_assets/500-queen-street.html
+//go:generate curl -L https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/12341511281.html -o test_assets/1-luanda-drive.html
 
 // Test data, run go:generate to update, then update dates in tests
 // accordingly.
@@ -42,22 +42,22 @@ func Test_parse(t *testing.T) {
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:        "Tuesday 27 August",
-						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 18 November",
+						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    true,
 						Recycle:    false,
 						FoodScraps: false,
 					},
 					{
-						Day:        "Tuesday 27 August",
-						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 18 November",
+						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    false,
 						FoodScraps: true,
 					},
 					{
-						Day:        "Tuesday 3 September",
-						Date:       adjustYear(time.Date(0, 9, 3, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 25 November",
+						Date:       adjustYear(time.Date(0, 11, 25, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    true,
 						FoodScraps: false,
@@ -71,14 +71,14 @@ func Test_parse(t *testing.T) {
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:     "Thursday 22 August",
-						Date:    adjustYear(time.Date(0, 8, 22, 0, 0, 0, 0, defaultLoc)),
+						Day:     "Saturday, 15 November",
+						Date:    adjustYear(time.Date(0, 11, 15, 0, 0, 0, 0, defaultLoc)),
 						Rubbish: true,
 						Recycle: false,
 					},
 					{
-						Day:     "Thursday 22 August",
-						Date:    adjustYear(time.Date(0, 8, 22, 0, 0, 0, 0, defaultLoc)),
+						Day:     "Saturday, 15 November",
+						Date:    adjustYear(time.Date(0, 11, 15, 0, 0, 0, 0, defaultLoc)),
 						Rubbish: false,
 						Recycle: true,
 					},
@@ -116,22 +116,22 @@ func TestCollectionDayDetail(t *testing.T) {
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:        "Tuesday 27 August",
-						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 18 November",
+						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    true,
 						Recycle:    false,
 						FoodScraps: false,
 					},
 					{
-						Day:        "Tuesday 27 August",
-						Date:       adjustYear(time.Date(0, 8, 27, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 18 November",
+						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    false,
 						FoodScraps: true,
 					},
 					{
-						Day:        "Tuesday 3 September",
-						Date:       adjustYear(time.Date(0, 9, 3, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 25 November",
+						Date:       adjustYear(time.Date(0, 11, 25, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    true,
 						FoodScraps: false,
@@ -152,7 +152,7 @@ func TestCollectionDayDetail(t *testing.T) {
 			oldAddrURI := addrURI
 			oldcollectionDayURI := collectionDayURI
 			defer func() { addrURI = oldAddrURI; collectionDayURI = oldcollectionDayURI }()
-			addrURI = tt.testSrv.URL + "/addr/"
+			addrURI = tt.testSrv.URL + "/addr"
 			collectionDayURI = tt.testSrv.URL + "/rubbish/?an=%s"
 			got, err := CollectionDayDetail(tt.args.addr)
 			if (err != nil) != tt.wantErr {
@@ -264,7 +264,7 @@ func TestRubbishCollection_parseDate(t *testing.T) {
 		fields  fields
 		wantErr bool
 	}{
-		{"some date", fields{Day: "Monday 16 September"}, false},
+		{"some date", fields{Day: "Monday, 16 September"}, false},
 		{"invalid date", fields{Day: "16 September"}, true},
 	}
 	for _, tt := range tests {
@@ -284,7 +284,7 @@ func TestRubbishCollection_parseDate(t *testing.T) {
 
 func testMux() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/addr/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/addr", func(w http.ResponseWriter, r *http.Request) {
 		data, err := json.Marshal(AddrResponse{*testAddr})
 		if err != nil {
 			panic(err)
