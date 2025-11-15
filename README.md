@@ -18,7 +18,7 @@ Full list of available endpoints, for detailed description see below.
 
 Two endpoints so far, both accepting `addr` parameter.
 
-* `/api/v1/rr/` - rubbish and recycling, returns the JSON of the following format:
+* `/api/v1/rr` - rubbish and recycling, returns the JSON of the following format:
 
       {
           "rubbish": "2020-02-25",
@@ -26,7 +26,7 @@ Two endpoints so far, both accepting `addr` parameter.
           "address": "Britomart, CBD"
       }
 
-* `/api/v1/rrext/` - extended rubbish and recycling.  Returns the JSON in the following format:
+* `/api/v1/rrext` - extended rubbish and recycling.  Returns the JSON in the following format:
 
       {
           "Collections": [
@@ -53,7 +53,7 @@ Two endpoints so far, both accepting `addr` parameter.
 Example:
 
 ```sh
-$ curl --location --request GET 'https://<server>/api/v1/rr/?addr=500%20Queen%20Street'
+$ curl --location --request GET 'https://<server>/api/v1/rr?addr=500%20Queen%20Street'
 {"rubbish":"2020-02-24","recycle":"2020-02-24","address":"500 Queen Street, Auckland Central"}
 ```
 
@@ -65,7 +65,7 @@ to your `configuration.yaml`:
 ```yaml
 sensor:
   - platform: rest
-    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
+    resource: "http://localhost:5010/api/v1/rr?addr=xx"
     name: Recycle
     scan_interval: 300
     value_template: "{{ value_json.recycle }}"
@@ -73,7 +73,7 @@ sensor:
     unique_id: recycle_date
 
   - platform: rest
-    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
+    resource: "http://localhost:5010/api/v1/rr?addr=xx"
     name: Food Scraps
     scan_interval: 300
     value_template: "{{ value_json.foodscraps }}"
@@ -81,7 +81,7 @@ sensor:
     unique_id: foodscraps_date
 
   - platform: rest
-    resource: "http://localhost:5010/api/v1/rr/?addr=xx"
+    resource: "http://localhost:5010/api/v1/rr?addr=xx"
     name: Rubbish
     scan_interval: 300
     value_template: "{{ value_json.rubbish }}"

@@ -24,9 +24,9 @@ const (
 	root              = "/"
 	apiHealthcheck    = "/healthcheck"
 	apiRoot           = "/api/v1"
-	apiAddr           = apiRoot + "/addr/"
-	apiRubbishRecycle = apiRoot + "/rr/"
-	apiRRExt          = apiRoot + "/rrext/"
+	apiAddr           = apiRoot + "/addr"
+	apiRubbishRecycle = apiRoot + "/rr"
+	apiRRExt          = apiRoot + "/rrext"
 )
 
 func init() {
