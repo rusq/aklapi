@@ -1,0 +1,32 @@
+{
+  "name": "aklapi-go-dev",
+  "image": "mcr.microsoft.com/devcontainers/go:1.24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "aklapi",
+      "protocol": "http",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "go.useLanguageServer": true,
+        "go.toolsManagement.autoUpdate": true,
+        "go.formatTool": "goimports",
+        "editor.formatOnSave": true,
+        "go.lintTool": "golangci-lint"
+      },
+      "extensions": [
+        "golang.go"
+      ]
+    }
+  },
+  "runArgs": ["--init"],
+  "containerUser": "vscode"
+}
