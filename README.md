@@ -63,29 +63,21 @@ Assuming your aklapi API server running on localhost:5010, add the following
 to your `configuration.yaml`:
 
 ```yaml
-sensor:
-  - platform: rest
-    resource: "http://localhost:5010/api/v1/rr?addr=xx"
-    name: Recycle
-    scan_interval: 300
-    value_template: "{{ value_json.recycle }}"
+rest:
+  - resource: http://localhost:5010/api/v1/rr?addr=xx
     method: GET
-    unique_id: recycle_date
-
-  - platform: rest
-    resource: "http://localhost:5010/api/v1/rr?addr=xx"
-    name: Food Scraps
     scan_interval: 300
-    value_template: "{{ value_json.foodscraps }}"
-    method: GET
-    unique_id: foodscraps_date
-
-  - platform: rest
-    resource: "http://localhost:5010/api/v1/rr?addr=xx"
-    name: Rubbish
-    scan_interval: 300
-    value_template: "{{ value_json.rubbish }}"
-    method: GET
-    unique_id: rubbish_date
-
+    sensor:
+      - name: Recycle
+        value_template: "{{ value_json.recycle }}"
+        device_class: date
+        unique_id: recycle_date
+      - name: Food Scraps
+        value_template: "{{ value_json.foodscraps }}"
+        device_class: date
+        unique_id: foodscraps_date
+      - name: Rubbish
+        value_template: "{{ value_json.rubbish }}"
+        device_class: date
+        unique_id: rubbish_date
 ```
