@@ -19,13 +19,13 @@ func Test_addrResponseCache_Lookup(t *testing.T) {
 		NoCache  bool // if true, set NoCache to true before running test
 		c        addrResponseCache
 		args     args
-		wantResp AddrResponse
+		wantResp *AddrResponse
 		wantOk   bool
 	}{
 		{"not in cache",
 			false,
 			addrResponseCache{
-				"xxx": AddrResponse{*testAddr},
+				"xxx": &AddrResponse{Items: []Address{*testAddr}},
 			},
 			args{"yyy"},
 			nil,
@@ -34,16 +34,16 @@ func Test_addrResponseCache_Lookup(t *testing.T) {
 		{"cached",
 			false,
 			addrResponseCache{
-				testAddr.Address: AddrResponse{*testAddr},
+				testAddr.Address: &AddrResponse{Items: []Address{*testAddr}},
 			},
 			args{testAddr.Address},
-			AddrResponse{*testAddr},
+			&AddrResponse{Items: []Address{*testAddr}},
 			true,
 		},
 		{"cached, no cache mode",
 			true,
 			addrResponseCache{
-				testAddr.Address: AddrResponse{*testAddr},
+				testAddr.Address: &AddrResponse{Items: []Address{*testAddr}},
 			},
 			args{testAddr.Address},
 			nil,
@@ -67,7 +67,7 @@ func Test_addrResponseCache_Lookup(t *testing.T) {
 func Test_addrResponseCache_Add(t *testing.T) {
 	type args struct {
 		searchText string
-		ar         AddrResponse
+		ar         *AddrResponse
 	}
 	tests := []struct {
 		name                  string
@@ -77,9 +77,9 @@ func Test_addrResponseCache_Add(t *testing.T) {
 	}{
 		{"add",
 			addrResponseCache{},
-			args{testAddr.Address, AddrResponse{*testAddr}},
+			args{testAddr.Address, &AddrResponse{Items: []Address{*testAddr}}},
 			addrResponseCache{
-				testAddr.Address: AddrResponse{*testAddr},
+				testAddr.Address: &AddrResponse{Items: []Address{*testAddr}},
 			},
 		},
 	}

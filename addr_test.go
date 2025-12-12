@@ -10,9 +10,8 @@ import (
 )
 
 var testAddr = &Address{
-	ACRateAccountKey: "42",
-	Address:          "Red Square",
-	Suggestion:       "Red Square",
+	ID:      "42",
+	Address: "Red Square",
 }
 
 func TestMatchingPropertyAddresses(t *testing.T) {
@@ -23,20 +22,28 @@ func TestMatchingPropertyAddresses(t *testing.T) {
 		name    string
 		testSrv *httptest.Server
 		args    args
-		want    AddrResponse
+		want    *AddrResponse
 		wantErr bool
 	}{
 		{"main branch",
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				writeAddrJSON(w, AddrResponse{*testAddr})
+				writeAddrJSON(w, AddrResponse{Items: []Address{*testAddr}})
 			})),
 			args{&AddrRequest{
-				ResultCount:     1,
-				SearchText:      "red sq",
-				RateKeyRequired: false,
+				PageSize:   1,
+				SearchText: "red sq",
 			}},
-			AddrResponse{*testAddr},
+			&AddrResponse{Items: []Address{*testAddr}},
 			false,
+		},
+		{"non-200 status code",
+			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+				writeAddrJSON(w, AddrResponse{})
+			})),
+			args{&AddrRequest{}},
+			nil,
+			true,
 		},
 		{"post error",
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -81,15 +88,15 @@ func TestAddress(t *testing.T) {
 		name    string
 		testSrv *httptest.Server
 		args    args
-		want    AddrResponse
+		want    *AddrResponse
 		wantErr bool
 	}{
 		{"main branch",
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				writeAddrJSON(w, AddrResponse{*testAddr})
+				writeAddrJSON(w, AddrResponse{Items: []Address{*testAddr}})
 			})),
 			args{"red square"},
-			AddrResponse{*testAddr},
+			&AddrResponse{Items: []Address{*testAddr}},
 			false,
 		},
 	}
@@ -124,7 +131,7 @@ func Test_oneAddress(t *testing.T) {
 	}{
 		{"one address",
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				writeAddrJSON(w, AddrResponse{*testAddr})
+				writeAddrJSON(w, AddrResponse{Items: []Address{*testAddr}})
 			})),
 			args{"red square"},
 			testAddr,
@@ -132,7 +139,7 @@ func Test_oneAddress(t *testing.T) {
 		},
 		{"several address",
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				writeAddrJSON(w, AddrResponse{*testAddr, *testAddr})
+				writeAddrJSON(w, AddrResponse{Items: []Address{*testAddr, *testAddr}})
 			})),
 			args{"red squarex"},
 			nil,
@@ -140,7 +147,7 @@ func Test_oneAddress(t *testing.T) {
 		},
 		{"no address",
 			httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("[]"))
+				w.Write([]byte("{\"items\":[]}"))
 			})),
 			args{"red squarec"},
 			nil,

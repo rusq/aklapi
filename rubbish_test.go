@@ -42,22 +42,22 @@ func Test_parse(t *testing.T) {
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:        "Tuesday, 18 November",
-						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 16 December",
+						Date:       adjustYear(time.Date(0, 12, 16, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    true,
 						Recycle:    false,
 						FoodScraps: false,
 					},
 					{
-						Day:        "Tuesday, 18 November",
-						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 16 December",
+						Date:       adjustYear(time.Date(0, 12, 16, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    false,
 						FoodScraps: true,
 					},
 					{
-						Day:        "Tuesday, 25 November",
-						Date:       adjustYear(time.Date(0, 11, 25, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 23 December",
+						Date:       adjustYear(time.Date(0, 12, 23, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    true,
 						FoodScraps: false,
@@ -71,14 +71,14 @@ func Test_parse(t *testing.T) {
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:     "Saturday, 15 November",
-						Date:    adjustYear(time.Date(0, 11, 15, 0, 0, 0, 0, defaultLoc)),
+						Day:     "Friday, 12 December",
+						Date:    adjustYear(time.Date(0, 12, 12, 0, 0, 0, 0, defaultLoc)),
 						Rubbish: true,
 						Recycle: false,
 					},
 					{
-						Day:     "Saturday, 15 November",
-						Date:    adjustYear(time.Date(0, 11, 15, 0, 0, 0, 0, defaultLoc)),
+						Day:     "Friday, 12 December",
+						Date:    adjustYear(time.Date(0, 12, 12, 0, 0, 0, 0, defaultLoc)),
 						Rubbish: false,
 						Recycle: true,
 					},
@@ -116,31 +116,30 @@ func TestCollectionDayDetail(t *testing.T) {
 			&CollectionDayDetailResult{
 				Collections: []RubbishCollection{
 					{
-						Day:        "Tuesday, 18 November",
-						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 16 December",
+						Date:       adjustYear(time.Date(0, 12, 16, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    true,
 						Recycle:    false,
 						FoodScraps: false,
 					},
 					{
-						Day:        "Tuesday, 18 November",
-						Date:       adjustYear(time.Date(0, 11, 18, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 16 December",
+						Date:       adjustYear(time.Date(0, 12, 16, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    false,
 						FoodScraps: true,
 					},
 					{
-						Day:        "Tuesday, 25 November",
-						Date:       adjustYear(time.Date(0, 11, 25, 0, 0, 0, 0, defaultLoc)),
+						Day:        "Tuesday, 23 December",
+						Date:       adjustYear(time.Date(0, 12, 23, 0, 0, 0, 0, defaultLoc)),
 						Rubbish:    false,
 						Recycle:    true,
 						FoodScraps: false,
 					},
 				},
 				Address: &Address{
-					ACRateAccountKey: "42",
-					Address:          "Red Square",
-					Suggestion:       "Red Square",
+					ID:      "42",
+					Address: "Red Square",
 				},
 			},
 			false,
@@ -285,7 +284,7 @@ func TestRubbishCollection_parseDate(t *testing.T) {
 func testMux() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/addr", func(w http.ResponseWriter, r *http.Request) {
-		data, err := json.Marshal(AddrResponse{*testAddr})
+		data, err := json.Marshal(AddrResponse{Items: []Address{*testAddr}})
 		if err != nil {
 			panic(err)
 		}
