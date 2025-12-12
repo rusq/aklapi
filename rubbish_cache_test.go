@@ -39,6 +39,16 @@ var (
 	}
 )
 
+func newRubbishCacheFromMap(m map[string]*CollectionDayDetailResult) *rubbishResultCache {
+	var res = rubbishResultCache{
+		lc: newLRUCache[string, *CollectionDayDetailResult](defCacheSz),
+	}
+	for k, v := range m {
+		res.Add(k, v)
+	}
+	return &res
+}
+
 func Test_rubbishResultCache_Lookup(t *testing.T) {
 	defer func() {
 		NoCache = false
@@ -49,52 +59,52 @@ func Test_rubbishResultCache_Lookup(t *testing.T) {
 	tests := []struct {
 		name       string
 		NoCache    bool // if true, set NoCache to true before running test
-		c          rubbishResultCache
+		c          *rubbishResultCache
 		args       args
 		wantResult *CollectionDayDetailResult
 		wantOk     bool
 	}{
-		{"not in cache (empty)", false, rubbishResultCache{}, args{"blah"}, nil, false},
+		{"not in cache (empty)", false, newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{}), args{"blah"}, nil, false},
 		{"not in cache",
 			false,
-			rubbishResultCache{
+			newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{
 				testAddr.Address: tomorrow,
-			},
+			}),
 			args{"blah"},
 			nil, false},
 		{"in cache (future)",
 			false,
-			rubbishResultCache{
+			newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{
 				testAddr.Address: tomorrow,
-			},
+			}),
 			args{testAddr.Address},
 			tomorrow, true},
 		{"in cache (today)",
 			false,
-			rubbishResultCache{
+			newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{
 				testAddr.Address: today,
-			},
+			}),
 			args{testAddr.Address},
 			today, true},
 		{"in cache, expired",
 			false,
-			rubbishResultCache{
+			newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{
 				testAddr.Address: yesterday,
-			},
+			}),
 			args{testAddr.Address},
 			nil, false},
 		{"in cache, second entry expired",
 			false,
-			rubbishResultCache{
+			newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{
 				testAddr.Address: secondYesterday,
-			},
+			}),
 			args{testAddr.Address},
 			nil, false},
 		{"no cache",
 			true,
-			rubbishResultCache{
-				testAddr.Address: today,
-			},
+			newRubbishCacheFromMap(map[string]*CollectionDayDetailResult{
+				testAddr.Address: secondYesterday,
+			}),
 			args{testAddr.Address},
 			nil, false},
 	}
