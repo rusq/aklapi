@@ -44,9 +44,8 @@ Two endpoints so far, both accepting `addr` parameter.
               }
           ],
           "Address": {
-              "ACRateAccountKey": "12342478585",
-              "Address": "500 Queen Street, Auckland Central",
-              "Suggestion": "500 Queen Street, Auckland Central"
+              "ID": "12342478585",
+              "Address": "500 Queen Street, Auckland Central"
           }
       }
 

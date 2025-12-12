@@ -101,7 +101,7 @@ func CollectionDayDetail(addr string) (*CollectionDayDetailResult, error) {
 		return nil, err
 	}
 	start := time.Now()
-	result, err := fetchandparse(address.ACRateAccountKey)
+	result, err := fetchandparse(address.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -112,8 +112,8 @@ func CollectionDayDetail(addr string) (*CollectionDayDetailResult, error) {
 }
 
 // fetchandparse retrieves the data from the webpage and attempts to parse it.
-func fetchandparse(ACRateAccountKey string) (*CollectionDayDetailResult, error) {
-	resp, err := http.Get(fmt.Sprintf(collectionDayURI, ACRateAccountKey))
+func fetchandparse(addressID string) (*CollectionDayDetailResult, error) {
+	resp, err := http.Get(fmt.Sprintf(collectionDayURI, addressID))
 	if err != nil {
 		return nil, err
 	}
