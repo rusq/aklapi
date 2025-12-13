@@ -1,9 +1,10 @@
 package aklapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -36,19 +37,19 @@ func (s Address) String() string {
 }
 
 // AddressLookup is a convenience function to get addresses.
-func AddressLookup(addr string) (*AddrResponse, error) {
-	return MatchingPropertyAddresses(&AddrRequest{SearchText: addr, PageSize: 10})
+func AddressLookup(ctx context.Context, addr string) (*AddrResponse, error) {
+	return MatchingPropertyAddresses(ctx, &AddrRequest{SearchText: addr, PageSize: 10})
 }
 
 // MatchingPropertyAddresses wrapper around the AKL Council API.
-func MatchingPropertyAddresses(addrReq *AddrRequest) (*AddrResponse, error) {
+func MatchingPropertyAddresses(ctx context.Context, addrReq *AddrRequest) (*AddrResponse, error) {
 	cachedAr, ok := addrCache.Lookup(addrReq.SearchText)
 	if ok {
-		log.Printf("cached address result: %q", cachedAr)
+		slog.DebugContext(ctx, "found cached address result", "addr", cachedAr)
 		return cachedAr, nil
 	}
 
-	req, err := http.NewRequest("GET", addrURI, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addrURI, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ func MatchingPropertyAddresses(addrReq *AddrRequest) (*AddrResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	log.Printf("address call complete in %s", time.Since(start))
+	slog.DebugContext(ctx, "address call complete", "duration", time.Since(start))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("address API returned status code: " + strconv.Itoa(resp.StatusCode))
@@ -82,8 +83,8 @@ func MatchingPropertyAddresses(addrReq *AddrRequest) (*AddrResponse, error) {
 	return &apiResp, nil
 }
 
-func oneAddress(addr string) (*Address, error) {
-	resp, err := AddressLookup(addr)
+func oneAddress(ctx context.Context, addr string) (*Address, error) {
+	resp, err := AddressLookup(ctx, addr)
 	if err != nil {
 		return nil, err
 	}

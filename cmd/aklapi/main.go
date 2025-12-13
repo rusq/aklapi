@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	_ "time/tzdata"
@@ -42,10 +44,9 @@ var (
 var tmpl = template.Must(template.New("index.html").Parse(rootHTML))
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	flag.Parse()
 	if *port == "" {
-		log.Printf("no port specified, defaulting to %s", defaultPort)
+		slog.Info("no port specified, using default", "port", defaultPort)
 	}
 
 	// Set the global caching flag.
@@ -58,9 +59,15 @@ func main() {
 	http.HandleFunc(apiRRExt, rrExtHandler)
 
 	hostport := fmt.Sprintf("%s:%s", *host, *port)
-	log.Println(banner)
-	log.Println("Listening on: ", hostport)
-	log.Fatal(http.ListenAndServe(hostport, nil))
+	slog.Info(banner)
+	slog.Info("Listening", "addr", hostport)
+	if err := http.ListenAndServe(hostport, nil); err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			slog.Info("server closed")
+			return
+		}
+		log.Fatal(err)
+	}
 }
 
 func usage() {

@@ -1,10 +1,11 @@
 package aklapi
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -91,29 +92,33 @@ func (res *CollectionDayDetailResult) NextFoodScraps() time.Time {
 
 // CollectionDayDetail returns a collection day details for the specified
 // address as reported by the Auckland Council Website.
-func CollectionDayDetail(addr string) (*CollectionDayDetailResult, error) {
+func CollectionDayDetail(ctx context.Context, addr string) (*CollectionDayDetailResult, error) {
 	if cachedRes, ok := rubbishCache.Lookup(addr); ok {
-		log.Printf("cached rubbish result for %q", addr)
+		slog.DebugContext(ctx, "found cached rubbish result", "addr", addr)
 		return cachedRes, nil
 	}
-	address, err := oneAddress(addr)
+	address, err := oneAddress(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
 	start := time.Now()
-	result, err := fetchandparse(address.ID)
+	result, err := fetchandparse(ctx, address.ID)
 	if err != nil {
 		return nil, err
 	}
 	result.Address = address
 	rubbishCache.Add(addr, result)
-	log.Printf("rubbish fetch and parse complete in %s", time.Since(start))
+	slog.DebugContext(ctx, "rubbish fetch and parse complete", "duration", time.Since(start))
 	return result, nil
 }
 
 // fetchandparse retrieves the data from the webpage and attempts to parse it.
-func fetchandparse(addressID string) (*CollectionDayDetailResult, error) {
-	resp, err := http.Get(fmt.Sprintf(collectionDayURI, addressID))
+func fetchandparse(ctx context.Context, addressID string) (*CollectionDayDetailResult, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf(collectionDayURI, addressID), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +172,7 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 				p.detail = p.detail[:i]
 				break
 			}
-			log.Println(err)
+			slog.Error("date parse error", "error", err, "day", p.detail[i].Day)
 			continue
 		}
 	}
