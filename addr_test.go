@@ -68,7 +68,7 @@ func TestMatchingPropertyAddresses(t *testing.T) {
 			oldURI := addrURI
 			defer func() { addrURI = oldURI }()
 			addrURI = tt.testSrv.URL
-			got, err := MatchingPropertyAddresses(tt.args.addrReq)
+			got, err := MatchingPropertyAddresses(t.Context(), tt.args.addrReq)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MatchingPropertyAddresses() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -106,7 +106,7 @@ func TestAddress(t *testing.T) {
 			oldURI := addrURI
 			defer func() { addrURI = oldURI }()
 			addrURI = tt.testSrv.URL
-			got, err := AddressLookup(tt.args.addr)
+			got, err := AddressLookup(t.Context(), tt.args.addr)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Address() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -160,7 +160,7 @@ func Test_oneAddress(t *testing.T) {
 			oldURI := addrURI
 			defer func() { addrURI = oldURI }()
 			addrURI = tt.testSrv.URL
-			got, err := oneAddress(tt.args.addr)
+			got, err := oneAddress(t.Context(), tt.args.addr)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("oneAddress() error = %v, wantErr %v", err, tt.wantErr)
 				return

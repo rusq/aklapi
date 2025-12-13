@@ -17,7 +17,7 @@ const rootHTML = `
 </head>
 <body>
     <img src="data:image/png;base64,{{.CyberdyneLogo}}">
-    <p>AT SOME POINT IN TIME, FUTURE WILL BE DIFFERENT FROM THE PRESENT.</p>
+    <p>AT SOME POINT, THE FUTURE WILL BE DIFFERENT FROM THE PRESENT.</p>
 </body>
 </html>
 `

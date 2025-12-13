@@ -153,7 +153,7 @@ func TestCollectionDayDetail(t *testing.T) {
 			defer func() { addrURI = oldAddrURI; collectionDayURI = oldcollectionDayURI }()
 			addrURI = tt.testSrv.URL + "/addr"
 			collectionDayURI = tt.testSrv.URL + "/rubbish/?an=%s"
-			got, err := CollectionDayDetail(tt.args.addr)
+			got, err := CollectionDayDetail(t.Context(), tt.args.addr)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CollectionDayDetail() error = %v, wantErr %v", err, tt.wantErr)
 				return

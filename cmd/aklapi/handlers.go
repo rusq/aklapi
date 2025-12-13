@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -20,7 +20,7 @@ type rrResponse struct {
 	Error      string `json:"error,omitempty"`
 }
 
-func respond(w http.ResponseWriter, data interface{}, code int) {
+func respond(w http.ResponseWriter, data any, code int) {
 	b, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -35,7 +35,7 @@ func rubbish(r *http.Request) (*aklapi.CollectionDayDetailResult, error) {
 	if addr == "" {
 		return nil, errors.New(http.StatusText(http.StatusBadRequest))
 	}
-	return aklapi.CollectionDayDetail(addr)
+	return aklapi.CollectionDayDetail(r.Context(), addr)
 }
 
 func addrHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,9 +44,9 @@ func addrHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	resp, err := aklapi.AddressLookup(addr)
+	resp, err := aklapi.AddressLookup(r.Context(), addr)
 	if err != nil {
-		log.Println(err)
+		slog.Error("address lookup failed", "error", err)
 		http.NotFound(w, r)
 		return
 	}
@@ -92,7 +92,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		CyberdyneLogo: cyberdynePng,
 	}
 	if err := tmpl.ExecuteTemplate(w, "index.html", &page); err != nil {
-		log.Println(err)
+		slog.Error("template rendering failed", "err", err)
 		http.NotFound(w, r)
 		return
 	}
