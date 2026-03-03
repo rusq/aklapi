@@ -2,10 +2,15 @@ SHELL=/bin/sh
 
 IMAGE=aklapi
 
-SRC=main.go $(wildcard aklapi/*.go)
+SRC=$(wildcard aklapi/*.go)
+PKG=./cmd/aklapi
 
 server: $(SRC) 
-	go build -o $@
+	go build -o $@ $(PKG)
+
+test:
+	go test ./... -race
+.PHONY: test
 
 docker:
 	docker build -t $(IMAGE) .

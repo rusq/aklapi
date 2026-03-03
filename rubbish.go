@@ -23,6 +23,8 @@ const (
 var (
 	// defined as a variable so it can be overridden in tests.
 	collectionDayURI = `https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/%s.html`
+	// defined as a variable so tests can replace it.
+	collectionHTTPClient = &http.Client{Timeout: 15 * time.Second}
 )
 
 var errSkip = errors.New("skip this date")
@@ -118,11 +120,14 @@ func fetchandparse(ctx context.Context, addressID string) (*CollectionDayDetailR
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := collectionHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("collection API returned status code: %d", resp.StatusCode)
+	}
 	return parse(resp.Body)
 }
 
