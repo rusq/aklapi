@@ -163,6 +163,29 @@ func TestCollectionDayDetail(t *testing.T) {
 	}
 }
 
+func TestFetchAndParse_StatusCodeError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("temporary error"))
+	}))
+	defer srv.Close()
+
+	oldURI := collectionDayURI
+	oldClient := collectionHTTPClient
+	defer func() {
+		collectionDayURI = oldURI
+		collectionHTTPClient = oldClient
+	}()
+
+	collectionDayURI = srv.URL + "/rubbish/%s"
+	collectionHTTPClient = srv.Client()
+
+	_, err := fetchandparse(t.Context(), "42")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
 func TestCollectionDayDetailResult_NextRubbish(t *testing.T) {
 	type fields struct {
 		Collections []RubbishCollection

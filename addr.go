@@ -13,6 +13,8 @@ import (
 var (
 	// defined as a variable so it can be overridden in tests.
 	addrURI = `https://www.aucklandcouncil.govt.nz/nextapi/property`
+	// defined as a variable so tests can replace it.
+	addrHTTPClient = &http.Client{Timeout: 15 * time.Second}
 )
 
 // AddrRequest is the address request.
@@ -61,8 +63,7 @@ func MatchingPropertyAddresses(ctx context.Context, addrReq *AddrRequest) (*Addr
 	req.URL.RawQuery = q.Encode()
 
 	start := time.Now()
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := addrHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

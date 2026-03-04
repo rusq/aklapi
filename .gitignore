@@ -2,6 +2,7 @@ aklrubbish
 *~
 .vscode
 .idea
+.env
 
 # binary files
 aklapi

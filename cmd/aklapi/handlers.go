@@ -12,6 +12,11 @@ import (
 
 const dttmLayout = "2006-01-02"
 
+var (
+	addressLookup       = aklapi.AddressLookup
+	collectionDayDetail = aklapi.CollectionDayDetail
+)
+
 type rrResponse struct {
 	Rubbish    string `json:"rubbish,omitempty"`
 	Recycle    string `json:"recycle,omitempty"`
@@ -24,6 +29,7 @@ func respond(w http.ResponseWriter, data any, code int) {
 	b, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(code)
@@ -35,7 +41,7 @@ func rubbish(r *http.Request) (*aklapi.CollectionDayDetailResult, error) {
 	if addr == "" {
 		return nil, errors.New(http.StatusText(http.StatusBadRequest))
 	}
-	return aklapi.CollectionDayDetail(r.Context(), addr)
+	return collectionDayDetail(r.Context(), addr)
 }
 
 func addrHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,10 +50,10 @@ func addrHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	resp, err := aklapi.AddressLookup(r.Context(), addr)
+	resp, err := addressLookup(r.Context(), addr)
 	if err != nil {
 		slog.Error("address lookup failed", "error", err)
-		http.NotFound(w, r)
+		http.Error(w, http.StatusText(http.StatusBadGateway), http.StatusBadGateway)
 		return
 	}
 	respond(w, resp, http.StatusOK)
