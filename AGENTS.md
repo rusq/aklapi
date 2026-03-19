@@ -9,7 +9,7 @@ This document provides guidance for agentic coding assistants operating in this 
 `aklapi` is a Go library and HTTP server that exposes Auckland Council APIs
 (rubbish collection schedules, property address lookup) as a simple REST service.
 
-- **Module:** `github.com/rusq/aklapi` (`go 1.24`)
+- **Module:** `github.com/rusq/aklapi` (`go 1.25`)
 - **Library package:** root (`aklapi`)
 - **Binary:** `cmd/aklapi/` — standard HTTP server on port 8080
 - **Language:** Go only — no TypeScript, JavaScript, or Node tooling
@@ -54,6 +54,7 @@ docker build -t aklapi .
 
 # Make targets
 make server   # go build -o server ./cmd/aklapi
+make test     # go test ./... -race
 make docker   # docker build -t aklapi .
 ```
 

@@ -14,12 +14,6 @@ var (
 // http client, so we send a browser-compatible value instead.
 const userAgent = "Mozilla/5.0 (compatible; aklapi/1.0)"
 
-// aklClient is a shared HTTP client that injects the required headers on every
-// outgoing request so that the Auckland Council CDN does not reject them.
-var aklClient = &http.Client{
-	Transport: &browserTransport{wrapped: http.DefaultTransport},
-}
-
 // browserTransport is an http.RoundTripper that adds browser-like headers to
 // every request before forwarding it to the underlying transport.
 type browserTransport struct {
