@@ -12,9 +12,9 @@ import (
 
 var (
 	// defined as a variable so it can be overridden in tests.
-	addrURI = `https://www.aucklandcouncil.govt.nz/nextapi/property`
+	addrURI = `https://experience.aucklandcouncil.govt.nz/nextapi/property`
 	// defined as a variable so tests can replace it.
-	addrHTTPClient = &http.Client{Timeout: 15 * time.Second}
+	addrHTTPClient = &http.Client{Timeout: 15 * time.Second, Transport: &browserTransport{wrapped: http.DefaultTransport}}
 )
 
 // AddrRequest is the address request.
@@ -25,8 +25,8 @@ type AddrRequest struct {
 
 // Address is the address and its unique identifier (rate account key).
 type Address struct {
-	ID      string `json:"ID"`
-	Address string `json:"Address"`
+	ID      string `json:"id"`
+	Address string `json:"address"`
 }
 
 // AddrResponse is the address response.

@@ -22,9 +22,9 @@ const (
 
 var (
 	// defined as a variable so it can be overridden in tests.
-	collectionDayURI = `https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/%s.html`
+	collectionDayURI = `https://www.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/%s.html`
 	// defined as a variable so tests can replace it.
-	collectionHTTPClient = &http.Client{Timeout: 15 * time.Second}
+	collectionHTTPClient = &http.Client{Timeout: 15 * time.Second, Transport: &browserTransport{wrapped: http.DefaultTransport}}
 )
 
 var errSkip = errors.New("skip this date")

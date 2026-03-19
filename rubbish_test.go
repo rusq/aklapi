@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//go:generate curl -L https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/12342478585.html -o test_assets/500-queen-street.html
-//go:generate curl -L https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/12341511281.html -o test_assets/1-luanda-drive.html
+//go:generate curl -L https://www.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/12342478585.html -o test_assets/500-queen-street.html
+//go:generate curl -L https://www.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/12341511281.html -o test_assets/1-luanda-drive.html
 
 // Test data, run go:generate to update, then update dates in tests
 // accordingly.

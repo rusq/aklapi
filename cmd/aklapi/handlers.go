@@ -10,12 +10,13 @@ import (
 	"github.com/rusq/aklapi"
 )
 
-const dttmLayout = "2006-01-02"
-
+// injectable for testing
 var (
 	addressLookup       = aklapi.AddressLookup
 	collectionDayDetail = aklapi.CollectionDayDetail
 )
+
+const dttmLayout = "2006-01-02"
 
 type rrResponse struct {
 	Rubbish    string `json:"rubbish,omitempty"`
@@ -53,7 +54,7 @@ func addrHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := addressLookup(r.Context(), addr)
 	if err != nil {
 		slog.Error("address lookup failed", "error", err)
-		http.Error(w, http.StatusText(http.StatusBadGateway), http.StatusBadGateway)
+		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 	respond(w, resp, http.StatusOK)
