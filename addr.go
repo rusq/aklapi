@@ -12,7 +12,7 @@ import (
 
 var (
 	// defined as a variable so it can be overridden in tests.
-	addrURI = `https://www.aucklandcouncil.govt.nz/nextapi/property`
+	addrURI = `https://experience.aucklandcouncil.govt.nz/nextapi/property`
 )
 
 // AddrRequest is the address request.
@@ -23,8 +23,8 @@ type AddrRequest struct {
 
 // Address is the address and its unique identifier (rate account key).
 type Address struct {
-	ID      string `json:"ID"`
-	Address string `json:"Address"`
+	ID      string `json:"id"`
+	Address string `json:"address"`
 }
 
 // AddrResponse is the address response.
@@ -61,8 +61,7 @@ func MatchingPropertyAddresses(ctx context.Context, addrReq *AddrRequest) (*Addr
 	req.URL.RawQuery = q.Encode()
 
 	start := time.Now()
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := aklClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,12 @@ import (
 	"github.com/rusq/aklapi"
 )
 
+// injectable for testing
+var (
+	addressLookup       = aklapi.AddressLookup
+	collectionDayDetail = aklapi.CollectionDayDetail
+)
+
 const dttmLayout = "2006-01-02"
 
 type rrResponse struct {
@@ -35,7 +41,7 @@ func rubbish(r *http.Request) (*aklapi.CollectionDayDetailResult, error) {
 	if addr == "" {
 		return nil, errors.New(http.StatusText(http.StatusBadRequest))
 	}
-	return aklapi.CollectionDayDetail(r.Context(), addr)
+	return collectionDayDetail(r.Context(), addr)
 }
 
 func addrHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,10 +50,10 @@ func addrHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	resp, err := aklapi.AddressLookup(r.Context(), addr)
+	resp, err := addressLookup(r.Context(), addr)
 	if err != nil {
 		slog.Error("address lookup failed", "error", err)
-		http.NotFound(w, r)
+		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 	respond(w, resp, http.StatusOK)

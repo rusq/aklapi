@@ -22,7 +22,7 @@ const (
 
 var (
 	// defined as a variable so it can be overridden in tests.
-	collectionDayURI = `https://new.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/%s.html`
+	collectionDayURI = `https://www.aucklandcouncil.govt.nz/en/rubbish-recycling/rubbish-recycling-collections/rubbish-recycling-collection-days/%s.html`
 )
 
 var errSkip = errors.New("skip this date")
@@ -118,7 +118,7 @@ func fetchandparse(ctx context.Context, addressID string) (*CollectionDayDetailR
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := aklClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
