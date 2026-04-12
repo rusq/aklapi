@@ -186,6 +186,149 @@ func TestFetchAndParse_StatusCodeError(t *testing.T) {
 	}
 }
 
+func TestCollectionRequestHeaders(t *testing.T) {
+	t.Cleanup(func() {
+		NoCache = false
+	})
+	NoCache = true
+
+	t.Run("fetchandparse uses browser headers", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if got := r.Header.Get("User-Agent"); got != userAgent {
+				http.Error(w, "missing browser user-agent", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Accept"); got != browserAccept {
+				http.Error(w, "missing browser accept", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Accept-Language"); got != browserAcceptLanguage {
+				http.Error(w, "missing browser accept-language", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Cache-Control"); got != "max-age=0" {
+				http.Error(w, "missing cache-control", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Upgrade-Insecure-Requests"); got != "1" {
+				http.Error(w, "missing upgrade-insecure-requests", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-Fetch-Site"); got != "none" {
+				http.Error(w, "missing sec-fetch-site", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-Fetch-Mode"); got != "navigate" {
+				http.Error(w, "missing sec-fetch-mode", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-Fetch-User"); got != "?1" {
+				http.Error(w, "missing sec-fetch-user", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-Fetch-Dest"); got != "document" {
+				http.Error(w, "missing sec-fetch-dest", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-CH-UA"); got != secCHUA {
+				http.Error(w, "missing sec-ch-ua", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-CH-UA-Mobile"); got != "?0" {
+				http.Error(w, "missing sec-ch-ua-mobile", http.StatusNotAcceptable)
+				return
+			}
+			if got := r.Header.Get("Sec-CH-UA-Platform"); got != secCHUAPlatform {
+				http.Error(w, "missing sec-ch-ua-platform", http.StatusNotAcceptable)
+				return
+			}
+			w.Write([]byte(taRsd1LuandaDrive))
+		}))
+		t.Cleanup(srv.Close)
+
+		oldURI := collectionDayURI
+		oldClient := collectionHTTPClient
+		t.Cleanup(func() {
+			collectionDayURI = oldURI
+			collectionHTTPClient = oldClient
+		})
+
+		collectionDayURI = srv.URL + "/rubbish/%s"
+		collectionHTTPClient = &http.Client{
+			Timeout:   time.Second,
+			Transport: &browserTransport{wrapped: srv.Client().Transport},
+		}
+
+		got, err := fetchandparse(t.Context(), "42")
+		if err != nil {
+			t.Fatalf("fetchandparse() error = %v", err)
+		}
+		if got == nil {
+			t.Fatal("fetchandparse() returned nil result")
+		}
+	})
+
+	t.Run("collection day detail recovers from 406 with browser headers", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/addr":
+				writeAddrJSON(w, AddrResponse{Items: []Address{*testAddr}})
+			case "/rubbish/42":
+				if r.Header.Get("User-Agent") == userAgent &&
+					r.Header.Get("Accept") == browserAccept &&
+					r.Header.Get("Accept-Language") == browserAcceptLanguage &&
+					r.Header.Get("Cache-Control") == "max-age=0" &&
+					r.Header.Get("Upgrade-Insecure-Requests") == "1" &&
+					r.Header.Get("Sec-Fetch-Site") == "none" &&
+					r.Header.Get("Sec-Fetch-Mode") == "navigate" &&
+					r.Header.Get("Sec-Fetch-User") == "?1" &&
+					r.Header.Get("Sec-Fetch-Dest") == "document" &&
+					r.Header.Get("Sec-CH-UA") == secCHUA &&
+					r.Header.Get("Sec-CH-UA-Mobile") == "?0" &&
+					r.Header.Get("Sec-CH-UA-Platform") == secCHUAPlatform {
+					w.Write([]byte(taRsd1LuandaDrive))
+					return
+				}
+				http.Error(w, "collection API returned status code: 406", http.StatusNotAcceptable)
+			default:
+				http.NotFound(w, r)
+			}
+		}))
+		t.Cleanup(srv.Close)
+
+		oldAddrURI := addrURI
+		oldCollectionDayURI := collectionDayURI
+		oldAddrClient := addrHTTPClient
+		oldCollectionClient := collectionHTTPClient
+		t.Cleanup(func() {
+			addrURI = oldAddrURI
+			collectionDayURI = oldCollectionDayURI
+			addrHTTPClient = oldAddrClient
+			collectionHTTPClient = oldCollectionClient
+		})
+
+		addrURI = srv.URL + "/addr"
+		collectionDayURI = srv.URL + "/rubbish/%s"
+		addrHTTPClient = &http.Client{
+			Timeout:   time.Second,
+			Transport: &browserTransport{wrapped: srv.Client().Transport},
+		}
+		collectionHTTPClient = &http.Client{
+			Timeout:   time.Second,
+			Transport: &browserTransport{wrapped: srv.Client().Transport},
+		}
+
+		got, err := CollectionDayDetail(t.Context(), "500 Queen Street")
+		if err != nil {
+			t.Fatalf("CollectionDayDetail() error = %v", err)
+		}
+
+		assert.NotNil(t, got)
+		assert.Equal(t, testAddr, got.Address)
+		assert.Len(t, got.Collections, 3)
+	})
+}
+
 func TestCollectionDayDetailResult_NextRubbish(t *testing.T) {
 	type fields struct {
 		Collections []RubbishCollection
