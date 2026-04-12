@@ -18,6 +18,17 @@ var NoCache = false
 
 const (
 	dateLayout = "Monday, 2 January"
+
+	// CSS selectors and text constants for the Auckland Council rubbish page.
+	// Update these if the council website redesigns its HTML structure.
+	selScheduleCard    = ".acpl-schedule-card"
+	selCardTitle       = "h4.card-title"
+	selCollectionItem  = "p.mb-0.lead span.acpl-icon-with-attribute.left"
+	selIcon            = "i.acpl-icon"
+	cardTitleHousehold = "Household collection"
+	iconRubbish        = "rubbish"
+	iconRecycle        = "recycle"
+	iconFoodWaste      = "food-waste"
 )
 
 var (
@@ -162,14 +173,18 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 		return nil, err
 	}
 
-	doc.Find(scheduledCardSelector).Each(func(i int, card *goquery.Selection) {
+	doc.Find(selScheduleCard).Each(func(i int, card *goquery.Selection) {
 		// Only parse Household collection card for now, not Commercial
-		cardTitle := strings.TrimSpace(card.Find("h4.card-title").Text())
-		if !strings.Contains(cardTitle, "Household collection") {
+		cardTitle := strings.TrimSpace(card.Find(selCardTitle).Text())
+		if !strings.Contains(cardTitle, cardTitleHousehold) {
 			return
 		}
 		p.parseScheduleCard(card)
 	})
+
+	if len(p.detail) == 0 {
+		return nil, errors.New("no collection data found: page structure may have changed")
+	}
 
 	for i := range p.detail {
 		if err := (&p.detail[i]).parseDate(); err != nil {
@@ -189,19 +204,19 @@ func (p *refuseParser) parse(r io.Reader) ([]RubbishCollection, error) {
 // parseScheduleCard parses a schedule card and extracts collection information.
 func (p *refuseParser) parseScheduleCard(card *goquery.Selection) {
 	// Each collection line is a <p class="mb-0 lead"> containing a span.acpl-icon-with-attribute.left
-	card.Find("p.mb-0.lead span.acpl-icon-with-attribute.left").Each(func(i int, span *goquery.Selection) {
-		icon := span.Find("i.acpl-icon")
+	card.Find(selCollectionItem).Each(func(i int, span *goquery.Selection) {
+		icon := span.Find(selIcon)
 		date := strings.TrimSpace(span.Find("b").First().Text())
 		if date == "" { // skip empty (e.g. food scraps absent)
 			return
 		}
 		var rc RubbishCollection
 		rc.Day = date
-		if icon.HasClass("rubbish") {
+		if icon.HasClass(iconRubbish) {
 			rc.Rubbish = true
-		} else if icon.HasClass("recycle") {
+		} else if icon.HasClass(iconRecycle) {
 			rc.Recycle = true
-		} else if icon.HasClass("food-waste") {
+		} else if icon.HasClass(iconFoodWaste) {
 			rc.FoodScraps = true
 		} else {
 			// Unknown icon type; ignore
