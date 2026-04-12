@@ -417,6 +417,50 @@ func TestCollectionDayDetailResult_NextRecycle(t *testing.T) {
 	}
 }
 
+func TestCollectionDayDetailResult_NextFoodScraps(t *testing.T) {
+	type fields struct {
+		Collections []RubbishCollection
+		Address     *Address
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   time.Time
+	}{
+		{"found",
+			fields{
+				Collections: []RubbishCollection{
+					{Day: "Someday",
+						Date:       time.Date(2000, 2, 1, 0, 0, 0, 0, defaultLoc),
+						Rubbish:    true,
+						Recycle:    false,
+						FoodScraps: false,
+					},
+					{Day: "This is the day",
+						Date:       time.Date(1991, 9, 16, 0, 0, 0, 0, defaultLoc),
+						Rubbish:    false,
+						Recycle:    false,
+						FoodScraps: true,
+					},
+				},
+			},
+			time.Date(1991, 9, 16, 0, 0, 0, 0, defaultLoc),
+		},
+		{"not found", fields{Collections: []RubbishCollection{}}, time.Time{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := &CollectionDayDetailResult{
+				Collections: tt.fields.Collections,
+				Address:     tt.fields.Address,
+			}
+			if got := res.NextFoodScraps(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CollectionDayDetailResult.NextFoodScraps() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRubbishCollection_parseDate(t *testing.T) {
 	type fields struct {
 		Day     string

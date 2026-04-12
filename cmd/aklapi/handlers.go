@@ -48,13 +48,13 @@ func rubbish(r *http.Request) (*aklapi.CollectionDayDetailResult, error) {
 func addrHandler(w http.ResponseWriter, r *http.Request) {
 	addr := r.FormValue("addr")
 	if addr == "" {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		respond(w, rrResponse{Error: http.StatusText(http.StatusBadRequest)}, http.StatusBadRequest)
 		return
 	}
 	resp, err := addressLookup(r.Context(), addr)
 	if err != nil {
 		slog.Error("address lookup failed", "error", err)
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		respond(w, rrResponse{Error: err.Error()}, http.StatusBadGateway)
 		return
 	}
 	respond(w, resp, http.StatusOK)

@@ -41,7 +41,7 @@ func Test_adjustYear(t *testing.T) {
 			args{mustTime(time.Parse(dttmFmt, "0000-04-07 00:00:00"))},
 			mustTime(time.Parse(dttmFmt, fmt.Sprintf("%d-04-07 00:00:00", time.Now().Year()))),
 		},
-		{"differnt days",
+		{"different days",
 			func() time.Time {
 				t, _ := time.Parse(dttmFmt, fmt.Sprintf("%d-09-15 20:00:00", time.Now().Year()))
 				return t
