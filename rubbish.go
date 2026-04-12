@@ -120,12 +120,14 @@ func fetchandparse(ctx context.Context, addressID string) (*CollectionDayDetailR
 	if err != nil {
 		return nil, err
 	}
+	setBrowserDocumentHeaders(req)
 	resp, err := collectionHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
+		slog.WarnContext(ctx, "collection request failed", "status", resp.StatusCode, "url", req.URL.String())
 		return nil, fmt.Errorf("collection API returned status code: %d", resp.StatusCode)
 	}
 	return parse(resp.Body)

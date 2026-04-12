@@ -10,9 +10,16 @@ var (
 )
 
 // userAgent is sent with all outgoing HTTP requests. The Auckland Council
-// website CDN (Fastly) returns 406 for requests that identify as Go's default
-// http client, so we send a browser-compatible value instead.
-const userAgent = "Mozilla/5.0 (compatible; aklapi/1.0)"
+// collection page returns 406 unless requests resemble a modern browser.
+const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
+
+const (
+	defaultAccept         = "application/json, text/html, */*"
+	browserAccept         = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+	browserAcceptLanguage = "en-NZ,en;q=0.9,en-US;q=0.8"
+	secCHUA               = "\"Chromium\";v=\"135\", \"Not.A/Brand\";v=\"8\""
+	secCHUAPlatform       = "\"macOS\""
+)
 
 // browserTransport is an http.RoundTripper that adds browser-like headers to
 // every request before forwarding it to the underlying transport.
@@ -27,7 +34,30 @@ func (t *browserTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		r.Header.Set("User-Agent", userAgent)
 	}
 	if r.Header.Get("Accept") == "" {
-		r.Header.Set("Accept", "application/json, text/html, */*")
+		r.Header.Set("Accept", defaultAccept)
 	}
-	return t.wrapped.RoundTrip(r)
+	if r.Header.Get("Accept-Language") == "" {
+		r.Header.Set("Accept-Language", browserAcceptLanguage)
+	}
+
+	wrapped := t.wrapped
+	if wrapped == nil {
+		wrapped = http.DefaultTransport
+	}
+	return wrapped.RoundTrip(r)
+}
+
+// setBrowserDocumentHeaders applies the navigation-style headers required by
+// the collection HTML page.
+func setBrowserDocumentHeaders(r *http.Request) {
+	r.Header.Set("Accept", browserAccept)
+	r.Header.Set("Cache-Control", "max-age=0")
+	r.Header.Set("Upgrade-Insecure-Requests", "1")
+	r.Header.Set("Sec-Fetch-Site", "none")
+	r.Header.Set("Sec-Fetch-Mode", "navigate")
+	r.Header.Set("Sec-Fetch-User", "?1")
+	r.Header.Set("Sec-Fetch-Dest", "document")
+	r.Header.Set("Sec-CH-UA", secCHUA)
+	r.Header.Set("Sec-CH-UA-Mobile", "?0")
+	r.Header.Set("Sec-CH-UA-Platform", secCHUAPlatform)
 }
