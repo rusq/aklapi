@@ -34,8 +34,8 @@ go test -v ./...
 # Run a single test by name (supports regex)
 go test -v -run TestFunctionName ./...
 
-# Run a single test in a specific package
-go test -v -run TestCollectionDayDetail ./cmd/aklapi/
+# Run a single test in this package
+go test -v -run TestCollectionDayDetail .
 
 # Run tests with race detector
 go test -race ./...
@@ -163,12 +163,21 @@ import (
   ```go
   var addressLookup = aklapi.AddressLookup
   ```
-- Restore overridden vars with `defer`:
+- Restore overridden vars with `defer` in top-level tests, or `t.Cleanup` in subtests:
   ```go
   old := addrURI
   addrURI = ts.URL
-  defer func() { addrURI = old }()
+  t.Cleanup(func() { addrURI = old })
   ```
+
+### Upstream Request Shape
+
+- The Auckland Council collection HTML endpoint may return `406` unless requests
+  look like a modern browser.
+- Reuse the shared HTTP client / transport helpers for outbound requests instead
+  of creating bare `http.Client` instances.
+- For the collection-day HTML page, preserve the browser-style document headers
+  set by helper functions such as `setBrowserDocumentHeaders`.
 
 ---
 
