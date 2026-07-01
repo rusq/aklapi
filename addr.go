@@ -4,11 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
+
+const maxAddressErrorBody = 4 << 10
 
 var (
 	// defined as a variable so it can be overridden in tests.
@@ -51,6 +56,11 @@ func MatchingPropertyAddresses(ctx context.Context, addrReq *AddrRequest) (*Addr
 		return cachedAr, nil
 	}
 
+	token, err := addrTokenProvider(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get address API token: %w", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, addrURI, nil)
 	if err != nil {
 		return nil, err
@@ -61,6 +71,7 @@ func MatchingPropertyAddresses(ctx context.Context, addrReq *AddrRequest) (*Addr
 		q.Add("pageSize", strconv.Itoa(addrReq.PageSize))
 	}
 	req.URL.RawQuery = q.Encode()
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	start := time.Now()
 	resp, err := addrHTTPClient.Do(req)
@@ -71,7 +82,7 @@ func MatchingPropertyAddresses(ctx context.Context, addrReq *AddrRequest) (*Addr
 	slog.DebugContext(ctx, "address call complete", "duration", time.Since(start))
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("address API returned status code: " + strconv.Itoa(resp.StatusCode))
+		return nil, addressStatusError(resp)
 	}
 
 	dec := json.NewDecoder(resp.Body)
@@ -94,4 +105,68 @@ func oneAddress(ctx context.Context, addr string) (*Address, error) {
 		return nil, errors.New("ambiguous or empty address results")
 	}
 	return &resp.Items[0], nil
+}
+
+func addressStatusError(resp *http.Response) error {
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxAddressErrorBody))
+	if err != nil {
+		return fmt.Errorf("address API returned status code: %d", resp.StatusCode)
+	}
+
+	msg := sanitizeAddressErrorBody(string(body))
+	if msg == "" {
+		return fmt.Errorf("address API returned status code: %d", resp.StatusCode)
+	}
+	return fmt.Errorf("address API returned status code: %d: %s", resp.StatusCode, msg)
+}
+
+func sanitizeAddressErrorBody(body string) string {
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return ""
+	}
+	body = strings.Map(func(r rune) rune {
+		if r == '\n' || r == '\r' || r == '\t' {
+			return ' '
+		}
+		if r < ' ' {
+			return -1
+		}
+		return r
+	}, body)
+	body = strings.Join(strings.Fields(body), " ")
+	if body == "" {
+		return ""
+	}
+
+	const marker = `"error"`
+	if strings.Contains(body, marker) {
+		var payload struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal([]byte(body), &payload); err == nil && payload.Error != "" {
+			body = payload.Error
+		}
+	}
+
+	body = redactSecretLikeText(body)
+	if len(body) > maxAddressErrorBody {
+		body = body[:maxAddressErrorBody]
+	}
+	return body
+}
+
+func redactSecretLikeText(s string) string {
+	words := strings.Fields(s)
+	for i, word := range words {
+		trimmed := strings.Trim(word, `"'.,;:()[]{}<>`)
+		if strings.EqualFold(trimmed, "Bearer") && i+1 < len(words) {
+			words[i+1] = "<redacted>"
+			continue
+		}
+		if strings.Count(trimmed, ".") >= 2 && len(trimmed) > 40 {
+			words[i] = strings.Replace(word, trimmed, "<redacted>", 1)
+		}
+	}
+	return strings.Join(words, " ")
 }
