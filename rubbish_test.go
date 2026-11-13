@@ -206,8 +206,8 @@ func TestCollectionRequestHeaders(t *testing.T) {
 				http.Error(w, "missing browser accept-language", http.StatusNotAcceptable)
 				return
 			}
-			if got := r.Header.Get("Cache-Control"); got != "max-age=0" {
-				http.Error(w, "missing cache-control", http.StatusNotAcceptable)
+			if got := r.Header.Get("Cache-Control"); got != "" {
+				http.Error(w, "unexpected cache-control", http.StatusNotAcceptable)
 				return
 			}
 			if got := r.Header.Get("Upgrade-Insecure-Requests"); got != "1" {
@@ -277,7 +277,7 @@ func TestCollectionRequestHeaders(t *testing.T) {
 				if r.Header.Get("User-Agent") == userAgent &&
 					r.Header.Get("Accept") == browserAccept &&
 					r.Header.Get("Accept-Language") == browserAcceptLanguage &&
-					r.Header.Get("Cache-Control") == "max-age=0" &&
+					r.Header.Get("Cache-Control") == "" &&
 					r.Header.Get("Upgrade-Insecure-Requests") == "1" &&
 					r.Header.Get("Sec-Fetch-Site") == "none" &&
 					r.Header.Get("Sec-Fetch-Mode") == "navigate" &&
